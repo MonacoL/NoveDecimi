@@ -269,3 +269,10 @@ h3 {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Quando lo schema è stretto (telefono, tablet in verticale) le etichette crescono per restare leggibili. */
+@media (max-width: 900px) {
+  .ib-sopra text { font-size: 18px; }
+  .ib-sotto text { font-size: 18px; }
+  .ib-superficie { font-size: 13px; }
+}
