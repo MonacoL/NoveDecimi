@@ -16,6 +16,8 @@ L'accesso dura circa un'ora per scheda. Dopo, le sessioni restano nel browser e 
 
 ## Client Google
 
+Il modo più semplice per crearlo è la procedura guidata `scripts/configura-google.sh`: apre una pagina alla volta della console di Google, dice cosa fare, salva il client ID in `.env.local` e nella variabile del repository, e rilancia la pubblicazione.
+
 L'accesso con Google compare solo se il sito è compilato con un client OAuth, nella variabile `VITE_GOOGLE_CLIENT_ID`:
 
 - in locale, in un file `.env.local` (non versionato): `VITE_GOOGLE_CLIENT_ID=<id>.apps.googleusercontent.com`;
