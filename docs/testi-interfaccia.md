@@ -74,6 +74,7 @@ Cambiano solo le intestazioni; sezioni, colonne e calcoli restano gli stessi.
 | 1453 | Fluidità % | Parole fluenti % |
 | 1479 | Zona corporea | Zona di tensione |
 | 1493 | Parole difficili | Parole con balbuzie |
+| 1494 | Quando, Dove (colonne delle parole) | Consapevolezza, Zona di tensione |
 
 ## Colori
 

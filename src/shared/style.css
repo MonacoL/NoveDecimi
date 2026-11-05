@@ -1,0 +1,176 @@
+/* Stile comune ai moduli di Novedecimi: colori, tipografia, tema chiaro e scuro.
+   I font sono serviti dal sito stesso, senza richieste a servizi esterni. */
+
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+
+:root {
+  --bg: #f3f2ee;
+  --surface: #ffffff;
+  --border: #e2e0d8;
+  --fg: #1a1916;
+  --fg-muted: #6f6c66;
+  --fg-subtle: #b3b0a7;
+  --accent: #2a7f8c;
+  --accent-lt: #e5f2f4;
+
+  /* Esiti della parola: due colori distinti che non si leggono come giusto e sbagliato. */
+  --fluente: #2a7f8c;
+  --fluente-lt: #e5f2f4;
+  --balbuzie: #6a5cb8;
+  --balbuzie-lt: #efecf9;
+
+  /* Tipi di disfluenza e zona di tensione. */
+  --rip: #6952c8;
+  --blo: #b4562a;
+  --pro: #1a6dc4;
+  --where: #7a5c3a;
+
+  /* Schema dell'iceberg. */
+  --sky: #f3f2ee;
+  --water: #d6e8ee;
+  --water-deep: #9fc3d1;
+  --ice: #ffffff;
+  --ice-shade: #dfeaf0;
+  --ice-line: #6f95a6;
+
+  --font-serif: 'Fraunces Variable', Georgia, serif;
+  --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #121416;
+    --surface: #1b1e21;
+    --border: #2b3034;
+    --fg: #eceae4;
+    --fg-muted: #9a978f;
+    --fg-subtle: #4a4d50;
+    --accent: #4fb3c2;
+    --accent-lt: #15272b;
+    --fluente: #4fb3c2;
+    --fluente-lt: #15272b;
+    --balbuzie: #9d90e6;
+    --balbuzie-lt: #221f35;
+    --rip: #8b7ae0;
+    --blo: #d47a4a;
+    --pro: #4a8be0;
+    --where: #c4956a;
+    --sky: #121416;
+    --water: #16303a;
+    --water-deep: #0d2029;
+    --ice: #e9f1f4;
+    --ice-shade: #2f5868;
+    --ice-line: #7fa6b6;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #121416;
+  --surface: #1b1e21;
+  --border: #2b3034;
+  --fg: #eceae4;
+  --fg-muted: #9a978f;
+  --fg-subtle: #4a4d50;
+  --accent: #4fb3c2;
+  --accent-lt: #15272b;
+  --fluente: #4fb3c2;
+  --fluente-lt: #15272b;
+  --balbuzie: #9d90e6;
+  --balbuzie-lt: #221f35;
+  --rip: #8b7ae0;
+  --blo: #d47a4a;
+  --pro: #4a8be0;
+  --where: #c4956a;
+  --sky: #121416;
+  --water: #16303a;
+  --water-deep: #0d2029;
+  --ice: #e9f1f4;
+  --ice-shade: #2f5868;
+  --ice-line: #7fa6b6;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Barra in alto con il nome della piattaforma, presente in ogni pagina. */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 12px
+    max(16px, env(safe-area-inset-left, 0px));
+}
+
+.brand {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.brand span {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

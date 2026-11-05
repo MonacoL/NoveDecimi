@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Esercizio di lettura di parole singole con annotazione degli episodi di balbuzie." />
+    <meta name="theme-color" content="#f3f2ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121416" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Lettura di parole, Novedecimi</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../">Nove<span>decimi</span></a>
+    </header>
+
+    <main class="app">
+      <!-- Avvio -->
+      <section id="start-screen" class="screen active" aria-labelledby="titolo-parole">
+        <div class="app-title">
+          <h1 id="titolo-parole">Lettura di parole</h1>
+          <p>Leggi la parola ad alta voce. Se c'è stato un episodio di balbuzie, annotalo.</p>
+        </div>
+
+        <div class="start-controls">
+          <div class="count-control">
+            <span class="eyebrow" id="count-label">Numero di parole</span>
+            <div class="count-row" role="group" aria-labelledby="count-label">
+              <button class="count-btn" id="dec-btn" type="button" aria-label="Meno parole">−</button>
+              <span id="count-display" aria-live="polite">15</span>
+              <button class="count-btn" id="inc-btn" type="button" aria-label="Più parole">+</button>
+            </div>
+          </div>
+
+          <button class="focus-toggle" id="focus-toggle" type="button" role="switch" aria-checked="false">
+            <span class="toggle-texts">
+              <span class="toggle-title">Suoni difficili</span>
+              <span class="toggle-sub">iniziali c, p, t, r</span>
+            </span>
+            <span class="toggle-switch" aria-hidden="true"><span class="toggle-knob"></span></span>
+          </button>
+        </div>
+
+        <button class="btn-primary" id="start-btn" type="button">Inizia</button>
+        <button class="btn-secondary" id="btn-storico-home" type="button">Storico</button>
+      </section>
+
+      <!-- Esercizio -->
+      <section id="exercise-screen" class="screen" aria-label="Esercizio">
+        <div>
+          <div class="prog-header">
+            <span class="prog-label" id="prog-label" aria-live="polite">Parola 1 di 15</span>
+            <div class="mini-stats">
+              <div class="mini-stat" title="Parole fluenti">
+                <span class="dot dot-ok" aria-hidden="true"></span><span id="mini-ok">0</span>
+                <span class="sr-only">fluenti</span>
+              </div>
+              <div class="mini-stat" title="Parole con balbuzie">
+                <span class="dot dot-diff" aria-hidden="true"></span><span id="mini-diff">0</span>
+                <span class="sr-only">con balbuzie</span>
+              </div>
+            </div>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width: 0%"></div></div>
+        </div>
+
+        <div class="word-stage">
+          <div class="word-num" id="word-num" aria-hidden="true">01</div>
+          <div class="word-text" id="word-text" role="heading" aria-level="2" aria-live="assertive"></div>
+          <div class="sound-badge" id="sound-badge" hidden></div>
+
+          <div class="mic-area" id="mic-area" hidden>
+            <button class="mic-strip" id="mic-strip" type="button" aria-label="Attiva il microfono">
+              <span class="mic-indicator" aria-hidden="true"></span>
+              <span class="mic-label" id="mic-label">Tocca per usare la voce</span>
+              <svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="9" y="2" width="6" height="11" rx="3" />
+                <path d="M5 10a7 7 0 0 0 14 0" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <div class="transcript-echo" id="transcript-echo" aria-live="polite"></div>
+            <p class="mic-hint" id="mic-hint" hidden>
+              Di' <span class="kw">avanti</span> per passare alla parola successiva, <span class="kw">balbuzie</span>
+              oppure il tipo (<span class="kw">ripetizione</span>, <span class="kw">blocco</span>,
+              <span class="kw">prolungamento</span>) per annotare.<br />
+              Poi la consapevolezza (<span class="kw">prima</span>, <span class="kw">durante</span>,
+              <span class="kw">dopo</span>) e, se vuoi, la zona (<span class="kw">labbra</span>,
+              <span class="kw">lingua</span>, <span class="kw">palato</span>, <span class="kw">gola</span>,
+              <span class="kw">petto</span>).
+            </p>
+          </div>
+        </div>
+
+        <div class="action-area">
+          <button class="btn-esito" id="btn-ok" type="button">Avanti</button>
+          <button class="btn-esito" id="btn-diff" type="button">Balbuzie</button>
+        </div>
+      </section>
+
+      <!-- Riepilogo -->
+      <section id="summary-screen" class="screen" aria-labelledby="titolo-riepilogo">
+        <div class="sum-header">
+          <h2 id="titolo-riepilogo">Sessione completata</h2>
+          <p id="sum-date"></p>
+        </div>
+        <div class="ring-wrap" role="img" aria-labelledby="ring-pct ring-lbl">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="ring-bg" cx="60" cy="60" r="54" />
+            <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="ring-center">
+            <span class="ring-pct" id="ring-pct">0%</span>
+            <span class="ring-lbl" id="ring-lbl">parole fluenti</span>
+          </div>
+        </div>
+        <div class="sum-grid">
+          <div class="scard">
+            <div class="scard-lbl">Fluenti</div>
+            <div class="scard-val" id="s-ok">0</div>
+            <div class="scard-sub">parole</div>
+          </div>
+          <div class="scard">
+            <div class="scard-lbl">Con balbuzie</div>
+            <div class="scard-val" id="s-diff">0</div>
+            <div class="scard-sub">parole</div>
+          </div>
+          <div class="scard full">
+            <div class="scard-lbl">Consapevolezza</div>
+            <div id="when-breakdown"></div>
+          </div>
+        </div>
+        <div class="bk-title" id="type-title" hidden>Tipo di disfluenza</div>
+        <div class="bk-rows" id="type-rows"></div>
+        <div class="bk-title" id="where-title" hidden>Zona di tensione</div>
+        <div class="bk-rows" id="where-rows"></div>
+        <div class="azioni">
+          <button class="btn-primary" id="restart-btn" type="button">Nuova sessione</button>
+          <button class="btn-secondary" id="download-btn" type="button">Scarica il riepilogo (.rtf)</button>
+          <button class="btn-secondary" id="btn-storico" type="button">Storico</button>
+          <p class="stato" id="summary-status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- Storico -->
+      <section id="storico-screen" class="screen" aria-labelledby="titolo-storico">
+        <div class="storico-header">
+          <h2 id="titolo-storico">Storico</h2>
+          <p id="storico-subtitle"></p>
+        </div>
+        <div id="storico-list"></div>
+        <div class="azioni">
+          <button class="btn-primary" id="btn-csv" type="button" hidden>Scarica l'esportazione (.csv)</button>
+        </div>
+        <div class="backup-box">
+          <p>
+            Lo storico resta solo su questo dispositivo. Con il backup puoi conservarne una copia o spostarlo su un
+            altro dispositivo.
+          </p>
+          <button class="btn-secondary" id="btn-backup" type="button" hidden>Scarica il backup (.json)</button>
+          <button class="btn-secondary" id="btn-import" type="button">Importa un backup</button>
+          <input type="file" id="import-file" accept="application/json,.json" hidden />
+          <p class="stato" id="storico-status" aria-live="polite"></p>
+        </div>
+        <div class="azioni">
+          <button class="btn-secondary" id="back-from-storico" type="button">Torna indietro</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Pannello delle annotazioni -->
+    <div id="diff-panel" role="dialog" aria-modal="true" aria-label="Annota l'episodio di balbuzie">
+      <div class="diff-sheet">
+        <div class="handle" aria-hidden="true"></div>
+        <div class="diff-echo" id="diff-echo"></div>
+
+        <div class="section-label" id="lbl-type">Tipo di disfluenza</div>
+        <div class="chips" id="type-chips" role="group" aria-labelledby="lbl-type">
+          <button class="chip" type="button" data-type="ripetizione">Ripetizione</button>
+          <button class="chip" type="button" data-type="blocco">Blocco</button>
+          <button class="chip" type="button" data-type="prolungamento">Prolungamento</button>
+        </div>
+
+        <div class="section-label" id="lbl-when">Consapevolezza</div>
+        <div class="chips" id="when-chips" role="group" aria-labelledby="lbl-when">
+          <button class="chip" type="button" data-when="prima">Prima</button>
+          <button class="chip" type="button" data-when="durante">Durante</button>
+          <button class="chip" type="button" data-when="dopo">Dopo</button>
+        </div>
+
+        <div class="section-label" id="lbl-where">Zona di tensione <small>(facoltativa)</small></div>
+        <div class="chips" id="where-chips" role="group" aria-labelledby="lbl-where">
+          <button class="chip" type="button" data-where="labbra">Labbra</button>
+          <button class="chip" type="button" data-where="lingua">Lingua</button>
+          <button class="chip" type="button" data-where="palato">Palato / velo</button>
+          <button class="chip" type="button" data-where="gola">Gola</button>
+          <button class="chip" type="button" data-where="petto">Petto</button>
+        </div>
+
+        <div class="diff-actions">
+          <button class="btn-cancel" id="cancel-btn" type="button">Annulla</button>
+          <button class="btn-confirm" id="confirm-btn" type="button" disabled>Conferma</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/parole/main.ts"></script>
+  </body>
+</html>

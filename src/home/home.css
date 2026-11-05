@@ -1,0 +1,271 @@
+.home,
+.piede {
+  width: 100%;
+  max-width: 1040px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+.eyebrow {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* Apertura con lo schema dell'iceberg */
+.hero {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+  padding-block: 24px 40px;
+}
+
+.hero h1 {
+  font-weight: 400;
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  margin-top: 10px;
+  text-wrap: balance;
+}
+
+.lead {
+  margin-top: 18px;
+  font-size: 1.08rem;
+  line-height: 1.65;
+  color: var(--fg-muted);
+  max-width: 34em;
+}
+
+.iceberg {
+  width: 100%;
+  max-width: 440px;
+  justify-self: center;
+}
+
+.iceberg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  background: var(--sky);
+}
+
+.iceberg figcaption {
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  margin-top: 10px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.ib-stop-chiaro {
+  stop-color: var(--water);
+}
+.ib-stop-scuro {
+  stop-color: var(--water-deep);
+}
+.ib-sommerso {
+  fill: var(--ice-shade);
+  opacity: 0.75;
+  stroke: var(--ice-line);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ib-punta {
+  fill: var(--ice);
+  stroke: var(--ice-line);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ib-faccetta,
+.ib-faccetta-punta {
+  fill: none;
+  stroke: var(--ice-line);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+.ib-onda {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.iceberg text {
+  font-family: var(--font-sans);
+}
+.ib-superficie {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--accent);
+}
+.ib-sopra text {
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--fg);
+}
+.ib-sotto text {
+  font-size: 16px;
+  font-weight: 500;
+  fill: #163642;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .ib-sotto text {
+    fill: #e9f1f4;
+  }
+}
+:root[data-theme='dark'] .ib-sotto text {
+  fill: #e9f1f4;
+}
+
+/* Spiegazione */
+.spiegazione,
+.esercizi {
+  padding-block: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.spiegazione h2,
+.esercizi h2 {
+  font-weight: 500;
+  font-size: clamp(1.6rem, 4.5vw, 2.1rem);
+}
+
+.parti {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.parte {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.parte h3 {
+  font-weight: 500;
+  font-size: 1.25rem;
+  margin-bottom: 8px;
+}
+
+.parte p,
+.ponte {
+  line-height: 1.65;
+  color: var(--fg-muted);
+}
+
+.ponte {
+  margin-top: 20px;
+  max-width: 40em;
+}
+
+/* Menù degli esercizi */
+.schede {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.scheda {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.scheda:hover {
+  border-color: var(--accent);
+  background: var(--accent-lt);
+}
+
+.scheda:active {
+  transform: scale(0.99);
+}
+
+.scheda-icona {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--accent-lt);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+.scheda svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.scheda-testo {
+  flex: 1;
+  min-width: 0;
+}
+
+.scheda-titolo {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.scheda-desc {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+  line-height: 1.55;
+}
+
+.scheda-freccia {
+  color: var(--fg-subtle);
+}
+
+.piede {
+  padding-block: 24px max(32px, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+}
+
+.piede p {
+  font-size: 0.86rem;
+  color: var(--fg-muted);
+  line-height: 1.6;
+  max-width: 44em;
+}
+
+@media (min-width: 760px) {
+  .hero {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
+    padding-block: 48px 64px;
+  }
+  .parti {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -55,7 +55,7 @@ export function aggrega(sessioni: Sessione[]): Aggregato {
   };
 }
 
-function chiaveGiorno(ts: number): string {
+export function chiaveGiorno(ts: number): string {
   const d = new Date(ts);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
