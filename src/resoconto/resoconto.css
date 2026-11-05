@@ -1,0 +1,23 @@
+/* Pagina del resoconto: scelta del periodo e anteprima del documento. */
+
+.app-largo { max-width: 760px; }
+
+.periodo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 400px; }
+.periodo label { display: flex; flex-direction: column; gap: 6px; }
+.periodo input {
+  font: inherit; font-size: .95rem; color: var(--fg); background: var(--surface);
+  border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; min-height: 44px; width: 100%;
+}
+
+.anteprima {
+  width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 20px 18px; font-size: .9rem; line-height: 1.55;
+}
+.anteprima h2 { font-family: var(--font-serif); font-weight: 500; font-size: 1.35rem; margin-bottom: 8px; }
+.anteprima h3 { font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--fg-muted); margin: 22px 0 8px; }
+.anteprima p { margin-bottom: 8px; }
+.anteprima .tabella { overflow-x: auto; margin-bottom: 12px; }
+.anteprima table { border-collapse: collapse; width: 100%; font-size: .84rem; font-variant-numeric: tabular-nums; }
+.anteprima th, .anteprima td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: left; vertical-align: top; }
+.anteprima th { font-weight: 600; color: var(--fg-muted); white-space: nowrap; }
+.anteprima tr:last-child td { border-bottom: none; }

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { interoNelloSchermo, raccogliErrori, senzaScorrimentoOrizzontale } from './aiuti';
 
-const PAGINE = ['./', 'parole/', 'storico/', 'account/'];
+const PAGINE = ['./', 'parole/', 'storico/', 'resoconto/', 'account/'];
 
 for (const pagina of PAGINE) {
   test(`il menù si apre e si chiude in ${pagina}`, async ({ page }) => {

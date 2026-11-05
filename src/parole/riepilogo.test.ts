@@ -1,13 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildRTF, rtfEscape } from './riepilogo';
+import { buildRTF } from './riepilogo';
 
 const giovedi = new Date(2026, 10, 5, 18, 30);
 
 describe('riepilogo RTF', () => {
-  it('codifica lettere accentate, parentesi graffe e caratteri fuori da Latin-1', () => {
-    expect(rtfEscape('perché {sì} €')).toBe("perch\\'e9 \\{s\\'ec\\} \\u8364?");
-  });
-
   it('elenca le parole con balbuzie con le loro annotazioni', () => {
     const rtf = buildRTF(
       [

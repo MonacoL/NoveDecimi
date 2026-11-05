@@ -10,6 +10,7 @@ export default defineConfig({
         parole: resolve(import.meta.dirname, 'parole/index.html'),
         storico: resolve(import.meta.dirname, 'storico/index.html'),
         account: resolve(import.meta.dirname, 'account/index.html'),
+        resoconto: resolve(import.meta.dirname, 'resoconto/index.html'),
       },
     },
   },

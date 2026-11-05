@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Resoconto delle sessioni di un periodo, da leggere con la logopedista." />
+    <meta name="theme-color" content="#f3f2ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121416" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Resoconto, Novedecimi</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../">Nove<span>decimi</span></a>
+    </header>
+
+    <main class="app pagina app-largo" aria-labelledby="titolo-resoconto">
+      <div class="pagina-header">
+        <h1 id="titolo-resoconto">Resoconto</h1>
+        <p>Le sessioni di un periodo, per giorno e per modalità, da leggere con la logopedista.</p>
+      </div>
+
+      <form class="periodo" id="periodo">
+        <label>
+          <span class="eyebrow">Dal</span>
+          <input type="date" id="da" required />
+        </label>
+        <label>
+          <span class="eyebrow">Al</span>
+          <input type="date" id="a" required />
+        </label>
+      </form>
+
+      <div class="azioni">
+        <button class="btn-primary" id="btn-rtf" type="button">Scarica il resoconto (.rtf)</button>
+        <p class="stato" id="resoconto-status" aria-live="polite"></p>
+      </div>
+
+      <article class="anteprima" id="anteprima" aria-label="Anteprima del resoconto"></article>
+    </main>
+
+    <script type="module" src="/src/resoconto/main.ts"></script>
+  </body>
+</html>
