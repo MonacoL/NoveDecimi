@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          # Client OAuth di Google (pubblico per natura). Senza, il sito non mostra l'accesso con Google.
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4

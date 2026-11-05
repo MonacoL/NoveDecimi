@@ -20,6 +20,26 @@
         <p>Dove stanno i tuoi dati e come portarli con te.</p>
       </div>
 
+      <section class="riquadro" id="google" aria-labelledby="titolo-google" hidden>
+        <h2 id="titolo-google">Account Google</h2>
+        <div class="gruppo-account" id="google-fuori">
+          <p>
+            Con l'accesso con Google lo storico si salva anche nel tuo Google Drive e lo ritrovi su ogni dispositivo.
+            Riepiloghi e resoconti vanno nella cartella Novedecimi. Novedecimi vede solo i file che crea.
+          </p>
+          <button class="btn-primary" id="btn-entra" type="button">Accedi con Google</button>
+        </div>
+        <div class="gruppo-account" id="google-dentro" hidden>
+          <p>Account: <strong id="google-email"></strong></p>
+          <p id="google-sync"></p>
+          <button class="btn-secondary" id="btn-sincronizza" type="button">Sincronizza ora</button>
+          <a class="btn-secondary" id="link-cartella" target="_blank" rel="noopener" hidden>Apri la cartella su Drive</a>
+          <button class="btn-secondary" id="btn-esci" type="button">Esci dall'account</button>
+          <p class="nota-piccola">Uscendo, lo storico viene tolto da questo browser. Su Drive resta.</p>
+        </div>
+        <p class="stato" id="google-avviso" aria-live="polite"></p>
+      </section>
+
       <section class="riquadro" id="dati-locali" aria-labelledby="titolo-locali">
         <h2 id="titolo-locali">Su questo dispositivo</h2>
         <p id="locali-stato"></p>

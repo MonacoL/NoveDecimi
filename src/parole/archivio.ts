@@ -1,14 +1,44 @@
-// Archivio delle sessioni sul dispositivo della persona (localStorage).
-// Sostituisce il db del runtime degli artefatti Claude.
+// Archivio delle sessioni nel browser (localStorage). Senza account lo
+// storico sta sotto una chiave comune; con l'account Google sotto una chiave
+// per account, così due persone sullo stesso browser non si mescolano
+// (ADR 0002). La copia su Drive la gestisce src/shared/sincronizza.ts.
 
 import { CONSAPEVOLEZZE, DOVE_NELLA_FRASE, MODALITA, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
 import type { ParolaLetta, Sessione } from './types';
 
-const CHIAVE = 'novedecimi.sessions';
+const CHIAVE_SENZA_ACCOUNT = 'novedecimi.sessions';
+const CHIAVE_ACCOUNT = 'novedecimi.account';
 
-function leggi(): Sessione[] {
+export interface Account {
+  /** Identificativo stabile dell'account Google. */
+  sub: string;
+  email: string;
+}
+
+/** L'account con cui la persona è entrata in questo browser, oppure null. */
+export function accountAttivo(): Account | null {
   try {
-    const grezzo = localStorage.getItem(CHIAVE);
+    const a = JSON.parse(localStorage.getItem(CHIAVE_ACCOUNT) ?? 'null') as Account | null;
+    return a && typeof a.sub === 'string' && typeof a.email === 'string' ? a : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Prefisso delle chiavi dell'account attivo, per gli altri dati che gli appartengono. */
+export function prefissoAccount(): string | null {
+  const a = accountAttivo();
+  return a ? `novedecimi.${a.sub}.` : null;
+}
+
+function chiave(): string {
+  const p = prefissoAccount();
+  return p ? p + 'sessions' : CHIAVE_SENZA_ACCOUNT;
+}
+
+function leggi(da = chiave()): Sessione[] {
+  try {
+    const grezzo = localStorage.getItem(da);
     if (!grezzo) return [];
     const dati: unknown = JSON.parse(grezzo);
     if (!Array.isArray(dati)) return [];
@@ -21,7 +51,7 @@ function leggi(): Sessione[] {
 
 function scrivi(sessioni: Sessione[]): boolean {
   try {
-    localStorage.setItem(CHIAVE, JSON.stringify(sessioni));
+    localStorage.setItem(chiave(), JSON.stringify(sessioni));
     return true;
   } catch {
     return false;
@@ -38,6 +68,51 @@ export function aggiungiSessione(s: Sessione): boolean {
   return scrivi([...leggi(), s]);
 }
 
+/** Sostituisce lo storico con quello dato, per esempio dopo la sincronizzazione. */
+export function sostituisciSessioni(sessioni: Sessione[]): boolean {
+  return scrivi(sessioni);
+}
+
+/**
+ * Entra nell'account: da qui in poi lo storico è quello dell'account. Le
+ * sessioni fatte senza account si uniscono al suo storico e la chiave comune
+ * si svuota.
+ */
+export function entraNellAccount(a: Account): void {
+  const senzaAccount = leggi(CHIAVE_SENZA_ACCOUNT);
+  localStorage.setItem(CHIAVE_ACCOUNT, JSON.stringify({ sub: a.sub, email: a.email }));
+  if (senzaAccount.length > 0) {
+    const { sessioni } = unisciSessioni(leggi(), senzaAccount);
+    if (scrivi(sessioni)) localStorage.removeItem(CHIAVE_SENZA_ACCOUNT);
+  }
+}
+
+/** Esce dall'account e toglie dal browser tutti i suoi dati. Su Drive restano. */
+export function esciDallAccount(): void {
+  const p = prefissoAccount();
+  if (p) {
+    for (const k of Object.keys(localStorage)) if (k.startsWith(p)) localStorage.removeItem(k);
+  }
+  localStorage.removeItem(CHIAVE_ACCOUNT);
+}
+
+/**
+ * Unisce allo storico presente le sessioni valide di un elenco esterno, per
+ * istante di fine sessione e senza doppioni. `aggiunte` conta le nuove.
+ */
+export function unisciSessioni(presenti: Sessione[], esterne: unknown[]): { sessioni: Sessione[]; aggiunte: number } {
+  const giaPresenti = new Set(presenti.map((s) => s.ts));
+  const nuove: Sessione[] = [];
+  for (const grezza of esterne) {
+    const s = sessioneValida(grezza);
+    if (s && !giaPresenti.has(s.ts)) {
+      nuove.push(s);
+      giaPresenti.add(s.ts);
+    }
+  }
+  return { sessioni: [...presenti, ...nuove].sort((a, b) => a.ts - b.ts), aggiunte: nuove.length };
+}
+
 const VERSIONE_BACKUP = 2;
 
 interface Backup {
@@ -46,10 +121,15 @@ interface Backup {
   sessioni: Sessione[];
 }
 
+/** Copia completa di uno storico nel formato del backup, che è anche quello del file su Drive. */
+export function serializzaStorico(sessioni: Sessione[]): string {
+  const backup: Backup = { app: 'novedecimi', versione: VERSIONE_BACKUP, sessioni };
+  return JSON.stringify(backup, null, 2);
+}
+
 /** Copia completa dello storico, da salvare come file JSON. */
 export function esportaBackup(): string {
-  const backup: Backup = { app: 'novedecimi', versione: VERSIONE_BACKUP, sessioni: elencaSessioni() };
-  return JSON.stringify(backup, null, 2);
+  return serializzaStorico(elencaSessioni());
 }
 
 export interface EsitoImport {
@@ -123,7 +203,8 @@ export class BackupNonValido extends Error {
   }
 }
 
-function leggiBackup(json: string): { sessioni: unknown[] } {
+/** Le sessioni grezze di un backup; lancia BackupNonValido se il file non lo è. */
+export function leggiBackup(json: string): { sessioni: unknown[] } {
   let dati: unknown;
   try {
     dati = JSON.parse(json);
@@ -143,16 +224,7 @@ function leggiBackup(json: string): { sessioni: unknown[] } {
  */
 export function importaBackup(json: string): EsitoImport {
   const backup = leggiBackup(json);
-  const presenti = leggi();
-  const giaPresenti = new Set(presenti.map((s) => s.ts));
-  const nuove: Sessione[] = [];
-  for (const grezza of backup.sessioni) {
-    const s = sessioneValida(grezza);
-    if (s && !giaPresenti.has(s.ts)) {
-      nuove.push(s);
-      giaPresenti.add(s.ts);
-    }
-  }
-  scrivi([...presenti, ...nuove]);
-  return { aggiunte: nuove.length, ignorate: backup.sessioni.length - nuove.length };
+  const { sessioni, aggiunte } = unisciSessioni(leggi(), backup.sessioni);
+  scrivi(sessioni);
+  return { aggiunte, ignorate: backup.sessioni.length - aggiunte };
 }

@@ -9,7 +9,10 @@ import { $, el } from '../shared/dom';
 import { montaMenu } from '../shared/menu';
 import '../shared/pagina.css';
 import { aggiungiSessione } from './archivio';
-import { NOMI_DOVE_FRASE, NOMI_ZONA, buildRTF } from './riepilogo';
+import { NOMI_DOVE_FRASE, NOMI_ZONA, buildRTF, costruisciRiepilogo } from './riepilogo';
+import { documentoHTML } from '../shared/documento';
+import { conAccount, driveRaggiungibile, sincronizzaInSilenzio, sincronizzaOra } from '../shared/collegamento';
+import { accoda, documentiInCoda } from '../shared/sincronizza';
 import { creaSessione, type Risultato } from './sessione';
 import { contaAnnotazioni, unita } from './storico';
 import { DOVE_NELLA_FRASE, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
@@ -89,6 +92,7 @@ $('start-btn').onclick = () => {
   currentSessionSaved = false;
   inAvanzamento = false;
   $('summary-status').textContent = '';
+  $('btn-drive').hidden = true;
   // In modalità frase i comandi vocali sono spenti (ADR 0004).
   $('mic-area').hidden = !rec || modalita === 'frase';
   $('mini-ok').parentElement!.title = modalita === 'frase' ? 'Frasi fluenti' : 'Parole fluenti';
@@ -286,12 +290,51 @@ document.querySelectorAll<HTMLElement>('#where-chips .chip').forEach((c) => {
 
 function saveSession(): void {
   if (currentSessionSaved || results.length === 0) return;
-  if (aggiungiSessione(creaSessione(results, focusMode, modalita, new Date()))) {
+  const adesso = new Date();
+  if (aggiungiSessione(creaSessione(results, focusMode, modalita, adesso))) {
     currentSessionSaved = true;
+    if (conAccount()) void mandaSuDrive(adesso);
   } else {
     mostraAvviso($('summary-status'), 'Non è stato possibile salvare la sessione su questo dispositivo.', 0);
   }
 }
+
+/**
+ * Con l'account il riepilogo va in coda per Drive. Se l'accesso è ancora
+ * valido parte subito con lo storico; altrimenti serve un tocco su
+ * "Carica su Drive", oppure partirà alla prossima sincronizzazione.
+ */
+async function mandaSuDrive(adesso: Date): Promise<void> {
+  const parole = results.map((r) => ({ type: [], when: null, where: [], inFrase: [], ...r }) as ParolaLetta);
+  const doc = costruisciRiepilogo(parole, modalita, adesso);
+  const ora = adesso.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }).replace(':', '.');
+  accoda({ cartella: 'Riepiloghi', nome: `${doc.titolo}, ore ${ora}`, html: documentoHTML(doc) });
+  const stato = $('summary-status');
+  if (driveRaggiungibile() && (await sincronizzaInSilenzio()) && documentiInCoda() === 0) {
+    mostraAvviso(stato, 'Sessione e riepilogo salvati su Drive.', 0);
+    return;
+  }
+  $('btn-drive').hidden = false;
+  mostraAvviso(stato, 'Il riepilogo è in coda per Drive.', 0);
+}
+
+$<HTMLButtonElement>('btn-drive').onclick = async (e) => {
+  const b = e.currentTarget as HTMLButtonElement;
+  b.disabled = true;
+  try {
+    await sincronizzaOra();
+    if (documentiInCoda() === 0) {
+      b.hidden = true;
+      mostraAvviso($('summary-status'), 'Sessione e riepilogo salvati su Drive.', 0);
+    } else {
+      mostraAvviso($('summary-status'), 'Il riepilogo non è partito; riprovo alla prossima sincronizzazione.', 0);
+    }
+  } catch (err) {
+    mostraAvviso($('summary-status'), err instanceof Error ? err.message : 'Drive non è raggiungibile.', 0);
+  } finally {
+    b.disabled = false;
+  }
+};
 
 const NOMI_TIPO: Record<TipoDisfluenza, string> = {
   ripetizione: 'Ripetizione',

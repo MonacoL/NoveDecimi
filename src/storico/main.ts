@@ -7,6 +7,7 @@ import { mostraAvviso } from '../shared/avviso';
 import { $, el } from '../shared/dom';
 import { scarica, timbroData } from '../shared/download';
 import { montaMenu } from '../shared/menu';
+import { sincronizzaInSilenzio } from '../shared/collegamento';
 import { elencaSessioni } from '../parole/archivio';
 import { NOMI_DOVE, buildCSV } from '../parole/esportazione';
 import { dataEstesa } from '../parole/sessione';
@@ -108,3 +109,6 @@ $('btn-csv').onclick = () => {
 };
 
 renderStorico();
+void sincronizzaInSilenzio().then((esito) => {
+  if (esito?.scaricate) renderStorico();
+});

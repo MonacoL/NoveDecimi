@@ -54,3 +54,5 @@ body {
 }
 .riquadro h2 { font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--fg-muted); }
 .riquadro p { font-size: .86rem; color: var(--fg-muted); text-align: center; line-height: 1.55; }
+.gruppo-account { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+.nota-piccola { font-size: .78rem !important; }

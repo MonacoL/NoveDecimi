@@ -8,9 +8,20 @@ Novedecimi accompagna il percorso logopedico e non lo sostituisce.
 
 ## Dove stanno i dati
 
-Nel browser del dispositivo, in `localStorage`. Non c'è un server di Novedecimi. Per conservare lo storico o spostarlo su un altro dispositivo, dalla pagina Account e dati si scarica un backup JSON e lo si importa dall'altra parte. Cancellando i dati del sito dal browser lo storico si perde.
+Non c'è un server di Novedecimi. Senza account lo storico sta solo nel browser del dispositivo, in `localStorage`: per conservarlo o spostarlo, dalla pagina Account e dati si scarica un backup JSON e lo si importa dall'altra parte. Cancellando i dati del sito dal browser lo storico si perde.
 
-L'accesso con Google, che porterà lo storico nel Google Drive della persona, è descritto in `docs/adr/0002-account-google-e-drive-come-archivio.md` ed è in lavorazione.
+Con l'accesso con Google lo storico si salva anche nel Google Drive della persona, nella cartella `Novedecimi` (file `storico-novedecimi.json`), e si ritrova su ogni dispositivo. Riepiloghi e resoconti vanno in `Novedecimi/Riepiloghi` e `Novedecimi/Resoconti` come documenti Google. L'app usa lo scope `drive.file`, quindi vede solo i file che ha creato. Uscendo dall'account i dati lasciano il browser e restano su Drive. Le ragioni sono in `docs/adr/0002-account-google-e-drive-come-archivio.md`.
+
+L'accesso dura circa un'ora per scheda. Dopo, le sessioni restano nel browser e i riepiloghi in coda, e partono al tocco su "Carica su Drive" o "Sincronizza ora".
+
+## Client Google
+
+L'accesso con Google compare solo se il sito è compilato con un client OAuth, nella variabile `VITE_GOOGLE_CLIENT_ID`:
+
+- in locale, in un file `.env.local` (non versionato): `VITE_GOOGLE_CLIENT_ID=<id>.apps.googleusercontent.com`;
+- su GitHub, come variabile del repository `GOOGLE_CLIENT_ID` (Settings, Secrets and variables, Actions, Variables), letta dal workflow.
+
+Il client si crea in Google Cloud Console: progetto, Google Drive API abilitata, schermata di consenso con lo scope `drive.file` e gli utenti di test, client "Applicazione web" con origini `https://monacol.github.io` e `http://localhost:5173`. Il client ID non è un segreto.
 
 ## Sviluppo
 
@@ -26,14 +37,14 @@ npm run build      # sito statico in dist/
 npm run preview    # serve dist/ in locale
 ```
 
-Il riconoscimento vocale richiede HTTPS oppure `localhost`.
+Il riconoscimento vocale richiede HTTPS oppure `localhost`. Per i test di Google in locale: `VITE_GOOGLE_CLIENT_ID=finto npm run build && npm run test:e2e` (Google e Drive sono simulati; senza la variabile quei test vengono saltati).
 
 ## Struttura
 
 - `index.html`: home con lo schema dell'iceberg e l'elenco degli esercizi.
 - `parole/index.html` e `src/parole/`: l'esercizio di lettura. `archivio.ts` gestisce `localStorage`, il backup e la conversione dei dati vecchi, `storico.ts` le aggregazioni per giorno e modalità, `esportazione.ts` il CSV, `riepilogo.ts` e `resoconto.ts` i documenti, `voce.ts` i comandi vocali, `main.ts` collega la pagina ai moduli.
 - `storico/`, `resoconto/`, `account/` con i rispettivi `src/<pagina>/main.ts`: le pagine dei dati.
-- `src/shared/`: stile, menù, download, messaggi e il modello dei documenti (`documento.ts`, scritto in RTF e in HTML).
+- `src/shared/`: stile, menù, download, messaggi, il modello dei documenti (`documento.ts`, scritto in RTF e in HTML), la sincronizzazione con Drive (`sincronizza.ts`, senza HTTP), le chiamate a Google (`google.ts`) e il collegamento con le pagine (`collegamento.ts`).
 - `GLOSSARY.md`: i termini del dominio. `docs/adr/`: le decisioni.
 - `riferimento/` (non versionata): il file dell'artefatto di claude.ai da cui è partito l'esercizio.
 
