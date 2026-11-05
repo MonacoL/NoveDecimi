@@ -155,9 +155,10 @@ body {
 #diff-panel {
   position: fixed; inset: 0; background: rgba(0,0,0,.48);
   display: flex; align-items: flex-end; justify-content: center; z-index: 100;
-  opacity: 0; pointer-events: none; transition: opacity .2s;
+  opacity: 0; pointer-events: none; visibility: hidden;
+  transition: opacity .2s, visibility 0s linear .2s;
 }
-#diff-panel.open { opacity: 1; pointer-events: all; }
+#diff-panel.open { opacity: 1; pointer-events: all; visibility: visible; transition: opacity .2s; }
 .diff-sheet {
   background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 560px;
   padding: 20px max(20px, env(safe-area-inset-right, 0px)) max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
@@ -285,6 +286,18 @@ body {
   .btn-esito { padding-block: 14px; }
   .action-area { padding-bottom: 4px; }
   #start-screen { gap: 16px; padding-block: 8px 16px; }
+}
+
+/* In orizzontale la schermata iniziale va su due colonne: titolo a sinistra, controlli a destra. */
+@media (max-height: 520px) and (min-width: 640px) {
+  .app:has(#start-screen.active) { max-width: 760px; }
+  #start-screen.active {
+    display: grid; grid-template-columns: 1fr 320px; align-content: center;
+    column-gap: 40px; row-gap: 12px; padding-block: 8px;
+  }
+  #start-screen .app-title { grid-column: 1; grid-row: 1 / span 3; text-align: left; }
+  #start-screen .app-title p { margin-inline: 0; }
+  #start-screen .start-controls, #start-btn, #btn-storico-home { grid-column: 2; }
 }
 
 /* In orizzontale le tre annotazioni stanno affiancate. */

@@ -17,7 +17,8 @@ Serve Node.js 22 o successivo.
 ```sh
 npm install
 npm run dev        # server locale con ricaricamento
-npm test           # test con Vitest
+npm test           # test dei moduli con Vitest
+npm run test:e2e   # test nel browser con Playwright (dopo npm run build)
 npm run typecheck  # controllo dei tipi
 npm run build      # sito statico in dist/
 npm run preview    # serve dist/ in locale
@@ -33,9 +34,16 @@ Il riconoscimento vocale richiede HTTPS oppure `localhost`.
 - `GLOSSARY.md`: i termini del dominio. `docs/adr/`: le decisioni.
 - `riferimento/` (non versionata): il file dell'artefatto di claude.ai da cui è partito l'esercizio.
 
+## Test
+
+- `src/**/*.test.ts`: i moduli senza interfaccia (archivio e backup, CSV, RTF, comandi vocali).
+- `e2e/`: il sito compilato in Chromium su quattro schermi (telefono piccolo 320×568, telefono 390×844, telefono in orizzontale 844×390, desktop). Coprono una sessione completa fino a storico ed esportazione, l'import del backup, la home, e controllano che nessuna pagina scorra in orizzontale e che i comandi principali restino nello schermo. In locale usano il Chrome installato.
+
+Il microfono e Safari su iPhone non sono coperti: vanno provati a mano.
+
 ## Pubblicazione
 
-Ogni push su `main` esegue i test, compila il sito e lo pubblica su GitHub Pages tramite `.github/workflows/deploy.yml`.
+Ogni push su `main` esegue i test dei moduli, compila il sito, esegue i test nel browser e solo se passano tutti lo pubblica su GitHub Pages, tramite `.github/workflows/deploy.yml`. Se un test nel browser fallisce, il rapporto si scarica dalla pagina del workflow su GitHub.
 
 ## Licenza
 
