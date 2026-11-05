@@ -10,6 +10,7 @@ import { buildCSV } from './esportazione';
 import { NOMI_ZONA, buildRTF } from './riepilogo';
 import { creaSessione, dataEstesa, type Risultato } from './sessione';
 import { chiaveGiorno, contaAnnotazioni, perGiorno } from './storico';
+import { TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
 import type { Consapevolezza, ParolaLetta, TipoDisfluenza, ZonaDiTensione } from './types';
 import { interpretaComando } from './voce';
 import { WORDS_ALL, WORDS_FOCUS, getSoundLabel, shuffle } from './words';
@@ -23,9 +24,9 @@ let focusMode = false;
 let words: string[] = [];
 let idx = 0;
 let results: Risultato[] = [];
-let selType: TipoDisfluenza | null = null;
+const selTypes = new Set<TipoDisfluenza>();
 let selWhen: Consapevolezza | null = null;
-let selWhere: ZonaDiTensione | null = null;
+const selWheres = new Set<ZonaDiTensione>();
 let inAvanzamento = false;
 let currentSessionSaved = false;
 let schermataPrecedente: Schermata = 'start';
@@ -140,10 +141,13 @@ function panelOpen(): boolean {
 
 function openDiffPanel(): void {
   if (inAvanzamento) return;
-  selType = null;
+  selTypes.clear();
   selWhen = null;
-  selWhere = null;
-  document.querySelectorAll('.chip').forEach((c) => c.classList.remove('sel'));
+  selWheres.clear();
+  document.querySelectorAll('.chip').forEach((c) => {
+    c.classList.remove('sel');
+    c.setAttribute('aria-pressed', 'false');
+  });
   $<HTMLButtonElement>('confirm-btn').disabled = true;
   $('diff-echo').textContent = words[idx] ?? '';
   $('diff-panel').classList.add('open');
@@ -166,17 +170,26 @@ document.addEventListener('keydown', (e) => {
 $('confirm-btn').onclick = () => {
   if (inAvanzamento) return;
   inAvanzamento = true;
-  results.push({ word: words[idx]!, ok: false, type: selType, when: selWhen, where: selWhere });
+  results.push({
+    word: words[idx]!,
+    ok: false,
+    type: inOrdine(selTypes, TIPI_DISFLUENZA),
+    when: selWhen,
+    where: inOrdine(selWheres, ZONE_DI_TENSIONE),
+  });
   flashWord('flash-diff');
   closePanel();
   setTimeout(next, 300);
 };
 
-function selectChip(gruppo: string, attr: string, valore: string, fromVoice: boolean): void {
+/** Allinea i chip di un gruppo ai valori scelti; con la voce i nuovi scelti fanno un piccolo salto. */
+function aggiornaChip(gruppo: string, attr: string, scelti: ReadonlySet<string>, nuovi: readonly string[] = []): void {
   document.querySelectorAll<HTMLElement>(`#${gruppo} .chip`).forEach((c) => {
-    const m = c.dataset[attr] === valore;
+    const valore = c.dataset[attr]!;
+    const m = scelti.has(valore);
     c.classList.toggle('sel', m);
-    if (m && fromVoice) {
+    c.setAttribute('aria-pressed', String(m));
+    if (nuovi.includes(valore)) {
       c.classList.remove('pop');
       void c.offsetWidth;
       c.classList.add('pop');
@@ -184,30 +197,44 @@ function selectChip(gruppo: string, attr: string, valore: string, fromVoice: boo
   });
 }
 
-function selectType(type: TipoDisfluenza, fromVoice = false): void {
-  selectChip('type-chips', 'type', type, fromVoice);
-  selType = type;
+/** Tocco su un chip a scelta multipla: lo aggiunge o lo toglie. */
+function alterna<T extends string>(scelti: Set<T>, valore: T): void {
+  if (scelti.has(valore)) scelti.delete(valore);
+  else scelti.add(valore);
+}
+
+function aggiornaTipi(nuovi: TipoDisfluenza[] = []): void {
+  aggiornaChip('type-chips', 'type', selTypes, nuovi);
+  updateConfirm();
+}
+function aggiornaZone(nuove: ZonaDiTensione[] = []): void {
+  aggiornaChip('where-chips', 'where', selWheres, nuove);
   updateConfirm();
 }
 function selectWhen(when: Consapevolezza, fromVoice = false): void {
-  selectChip('when-chips', 'when', when, fromVoice);
   selWhen = when;
-  updateConfirm();
-}
-function selectWhere(where: ZonaDiTensione, fromVoice = false): void {
-  selectChip('where-chips', 'where', where, fromVoice);
-  selWhere = where;
+  aggiornaChip('when-chips', 'when', new Set([when]), fromVoice ? [when] : []);
   updateConfirm();
 }
 
+/** Con la voce si aggiunge e non si toglie (ADR 0003). */
+function aggiungiTipi(tipi: TipoDisfluenza[]): void {
+  for (const t of tipi) selTypes.add(t);
+  aggiornaTipi(tipi);
+}
+function aggiungiZone(zone: ZonaDiTensione[]): void {
+  for (const z of zone) selWheres.add(z);
+  aggiornaZone(zone);
+}
+
 function updateConfirm(): void {
-  $<HTMLButtonElement>('confirm-btn').disabled = !(selType && selWhen);
+  $<HTMLButtonElement>('confirm-btn').disabled = !(selTypes.size > 0 && selWhen);
 }
 
 /** Con la voce, tipo e consapevolezza bastano: la conferma parte da sola dopo un secondo. */
 function checkAutoConfirm(): void {
   clearTimeout(autoConfirmTimer);
-  if (selType && selWhen) {
+  if (selTypes.size > 0 && selWhen) {
     autoConfirmTimer = window.setTimeout(() => {
       if (!$<HTMLButtonElement>('confirm-btn').disabled) $('confirm-btn').click();
     }, 1000);
@@ -215,13 +242,19 @@ function checkAutoConfirm(): void {
 }
 
 document.querySelectorAll<HTMLElement>('#type-chips .chip').forEach((c) => {
-  c.onclick = () => selectType(c.dataset.type as TipoDisfluenza);
+  c.onclick = () => {
+    alterna(selTypes, c.dataset.type as TipoDisfluenza);
+    aggiornaTipi();
+  };
 });
 document.querySelectorAll<HTMLElement>('#when-chips .chip').forEach((c) => {
   c.onclick = () => selectWhen(c.dataset.when as Consapevolezza);
 });
 document.querySelectorAll<HTMLElement>('#where-chips .chip').forEach((c) => {
-  c.onclick = () => selectWhere(c.dataset.where as ZonaDiTensione);
+  c.onclick = () => {
+    alterna(selWheres, c.dataset.where as ZonaDiTensione);
+    aggiornaZone();
+  };
 });
 
 // Riepilogo
@@ -277,7 +310,7 @@ function summary(): void {
     }),
   );
 
-  const parole = results.map((r) => ({ type: null, when: null, where: null, ...r }) as ParolaLetta);
+  const parole = results.map((r) => ({ type: [], when: null, where: [], ...r }) as ParolaLetta);
   const { tipo, consapevolezza, zona } = contaAnnotazioni(parole);
 
   const wb = $('when-breakdown');
@@ -311,7 +344,7 @@ function summary(): void {
 $('restart-btn').onclick = () => show('start');
 
 $('download-btn').onclick = () => {
-  const parole = results.map((r) => ({ type: null, when: null, where: null, ...r }) as ParolaLetta);
+  const parole = results.map((r) => ({ type: [], when: null, where: [], ...r }) as ParolaLetta);
   scarica(`parole-${timbroData()}.rtf`, buildRTF(parole, new Date()), 'application/rtf');
 };
 
@@ -443,21 +476,21 @@ function handleVoice(testo: string): void {
     case 'apri':
       lastCmdTime = now;
       openDiffPanel();
-      if (cmd.disfluenza) {
-        const tipo = cmd.disfluenza;
+      if (cmd.disfluenze.length > 0) {
+        const tipi = cmd.disfluenze;
         setTimeout(() => {
-          selectType(tipo, true);
+          aggiungiTipi(tipi);
           checkAutoConfirm();
         }, 120);
       }
       break;
     case 'annota':
       lastCmdTime = now;
-      if (cmd.disfluenza) selectType(cmd.disfluenza, true);
+      if (cmd.disfluenze) aggiungiTipi(cmd.disfluenze);
       if (cmd.consapevolezza) selectWhen(cmd.consapevolezza, true);
-      if (cmd.zona) selectWhere(cmd.zona, true);
+      if (cmd.zone) aggiungiZone(cmd.zone);
       // La zona da sola non fa partire la conferma: è facoltativa.
-      if (cmd.disfluenza || cmd.consapevolezza) checkAutoConfirm();
+      if (cmd.disfluenze || cmd.consapevolezza) checkAutoConfirm();
       break;
     case 'conferma':
       if (!$<HTMLButtonElement>('confirm-btn').disabled) {
@@ -535,7 +568,7 @@ function renderStorico(): void {
       for (const w of g.conBalbuzie) {
         const pill = el('span', 'word-pill');
         pill.append(el('strong', undefined, w.word));
-        const ann = [w.type, w.when, w.where].filter(Boolean).join(', ');
+        const ann = [...inOrdine(w.type, TIPI_DISFLUENZA), ...(w.when ? [w.when] : []), ...inOrdine(w.where, ZONE_DI_TENSIONE)].join(', ');
         if (ann) pill.append(el('span', 'pill-ann', ann));
         pills.append(pill);
       }

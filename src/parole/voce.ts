@@ -5,8 +5,8 @@ import type { Consapevolezza, TipoDisfluenza, ZonaDiTensione } from './types';
 
 export type Comando =
   | { azione: 'avanti' }
-  | { azione: 'apri'; disfluenza: TipoDisfluenza | null }
-  | { azione: 'annota'; disfluenza?: TipoDisfluenza; consapevolezza?: Consapevolezza; zona?: ZonaDiTensione }
+  | { azione: 'apri'; disfluenze: TipoDisfluenza[] }
+  | { azione: 'annota'; disfluenze?: TipoDisfluenza[]; consapevolezza?: Consapevolezza; zone?: ZonaDiTensione[] }
   | { azione: 'conferma' }
   | { azione: 'annulla' };
 
@@ -15,11 +15,13 @@ function normalizza(testo: string): string {
   return testo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
 
-function rilevaDisfluenza(t: string): TipoDisfluenza | null {
-  if (/\bripet\w*/.test(t)) return 'ripetizione';
-  if (/\bblocc\w*/.test(t)) return 'blocco';
-  if (/\bprolung\w*/.test(t)) return 'prolungamento';
-  return null;
+/** Tutti i tipi nominati nella frase, nell'ordine canonico. */
+function rilevaDisfluenze(t: string): TipoDisfluenza[] {
+  const trovati: TipoDisfluenza[] = [];
+  if (/\bripet\w*/.test(t)) trovati.push('ripetizione');
+  if (/\bblocc\w*/.test(t)) trovati.push('blocco');
+  if (/\bprolung\w*/.test(t)) trovati.push('prolungamento');
+  return trovati;
 }
 
 function rilevaConsapevolezza(t: string): Consapevolezza | null {
@@ -29,13 +31,15 @@ function rilevaConsapevolezza(t: string): Consapevolezza | null {
   return null;
 }
 
-function rilevaZona(t: string): ZonaDiTensione | null {
-  if (/\blabbr\w*/.test(t)) return 'labbra';
-  if (/\blingua\b/.test(t)) return 'lingua';
-  if (/\b(palato|velo)\b/.test(t)) return 'palato';
-  if (/\bgola\b/.test(t)) return 'gola';
-  if (/\b(petto|diaframma)\b/.test(t)) return 'petto';
-  return null;
+/** Tutte le zone nominate nella frase, nell'ordine canonico. */
+function rilevaZone(t: string): ZonaDiTensione[] {
+  const trovate: ZonaDiTensione[] = [];
+  if (/\blabbr\w*/.test(t)) trovate.push('labbra');
+  if (/\blingua\b/.test(t)) trovate.push('lingua');
+  if (/\b(palato|velo)\b/.test(t)) trovate.push('palato');
+  if (/\bgola\b/.test(t)) trovate.push('gola');
+  if (/\b(petto|diaframma)\b/.test(t)) trovate.push('petto');
+  return trovate;
 }
 
 /**
@@ -48,21 +52,21 @@ export function interpretaComando(testo: string, pannelloAperto: boolean): Coman
 
   if (!pannelloAperto) {
     if (/\b(avanti|bene|ok|okay|bravo|fluente|benissimo|perfetto)\b/.test(t)) return { azione: 'avanti' };
-    const disfluenza = rilevaDisfluenza(t);
-    if (disfluenza) return { azione: 'apri', disfluenza };
-    if (/\bbalbuzie\b/.test(t)) return { azione: 'apri', disfluenza: null };
+    const disfluenze = rilevaDisfluenze(t);
+    if (disfluenze.length > 0) return { azione: 'apri', disfluenze };
+    if (/\bbalbuzie\b/.test(t)) return { azione: 'apri', disfluenze: [] };
     return null;
   }
 
-  const disfluenza = rilevaDisfluenza(t);
+  const disfluenze = rilevaDisfluenze(t);
   const consapevolezza = rilevaConsapevolezza(t);
-  const zona = rilevaZona(t);
-  if (disfluenza || consapevolezza || zona) {
+  const zone = rilevaZone(t);
+  if (disfluenze.length > 0 || consapevolezza || zone.length > 0) {
     return {
       azione: 'annota',
-      ...(disfluenza && { disfluenza }),
+      ...(disfluenze.length > 0 && { disfluenze }),
       ...(consapevolezza && { consapevolezza }),
-      ...(zona && { zona }),
+      ...(zone.length > 0 && { zone }),
     };
   }
   if (/\b(conferma|si|vai|ok|okay|bene|giusto|esatto)\b/.test(t)) return { azione: 'conferma' };

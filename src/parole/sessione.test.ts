@@ -7,7 +7,7 @@ describe('creazione della sessione da salvare', () => {
     const s = creaSessione(
       [
         { word: 'pane', ok: true },
-        { word: 'casa', ok: false, type: 'blocco', when: 'durante' },
+        { word: 'casa', ok: false, type: ['blocco'], when: 'durante' },
         { word: 'tavolo', ok: true },
       ],
       true,
@@ -23,9 +23,9 @@ describe('creazione della sessione da salvare', () => {
       pct: 67,
       focusMode: true,
       words: [
-        { word: 'pane', ok: true, type: null, when: null, where: null },
-        { word: 'casa', ok: false, type: 'blocco', when: 'durante', where: null },
-        { word: 'tavolo', ok: true, type: null, when: null, where: null },
+        { word: 'pane', ok: true, type: [], when: null, where: [] },
+        { word: 'casa', ok: false, type: ['blocco'], when: 'durante', where: [] },
+        { word: 'tavolo', ok: true, type: [], when: null, where: [] },
       ],
     });
   });

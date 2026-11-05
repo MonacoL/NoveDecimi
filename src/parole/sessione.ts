@@ -22,9 +22,9 @@ export function creaSessione(risultati: Risultato[], focusMode: boolean, adesso:
     words: risultati.map((r) => ({
       word: r.word,
       ok: r.ok,
-      type: r.type ?? null,
+      type: r.type ?? [],
       when: r.when ?? null,
-      where: r.where ?? null,
+      where: r.where ?? [],
     })),
   };
 }

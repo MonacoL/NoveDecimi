@@ -33,9 +33,10 @@ export function contaAnnotazioni(parole: ParolaLetta[]): Conteggi {
   const zona = { labbra: 0, lingua: 0, palato: 0, gola: 0, petto: 0 };
   for (const p of parole) {
     if (p.ok) continue;
-    if (p.type) tipo[p.type]++;
+    // Ogni tipo e ogni zona contano una volta per parola (ADR 0003).
+    for (const t of p.type) tipo[t]++;
     if (p.when) consapevolezza[p.when]++;
-    if (p.where) zona[p.where]++;
+    for (const z of p.where) zona[z]++;
   }
   return { tipo, consapevolezza, zona };
 }

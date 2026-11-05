@@ -30,7 +30,7 @@ test('un backup importato compare nello storico e i suoi dati restano testo', as
     void d.dismiss();
   });
 
-  const backup = { app: 'novedecimi', versione: 1, sessioni: [sessione(1762100000000, '<img src=x onerror=alert(1)>')] };
+  const backup = { app: 'novedecimi', versione: 2, sessioni: [sessione(1762100000000, '<img src=x onerror=alert(1)>')] };
   await importa(page, 'backup.json', JSON.stringify(backup));
 
   await expect(page.locator('#storico-status')).toHaveText('Backup importato: 1 sessione aggiunta.');

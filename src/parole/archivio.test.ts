@@ -12,8 +12,8 @@ function sessione(ts: number, parola = 'casa'): Sessione {
     pct: 50,
     focusMode: false,
     words: [
-      { word: 'pane', ok: true, type: null, when: null, where: null },
-      { word: parola, ok: false, type: 'blocco', when: 'durante', where: 'labbra' },
+      { word: 'pane', ok: true, type: [], when: null, where: [] },
+      { word: parola, ok: false, type: ['blocco'], when: 'durante', where: ['labbra', 'gola'] },
     ],
   };
 }
@@ -35,6 +35,21 @@ describe('archivio delle sessioni', () => {
   it('restituisce uno storico vuoto se i dati salvati sono illeggibili', () => {
     localStorage.setItem('novedecimi.sessions', '{non è json');
     expect(elencaSessioni()).toEqual([]);
+  });
+
+  it('converte le annotazioni salvate prima delle scelte multiple', () => {
+    const vecchia = {
+      ...sessione(1000),
+      words: [
+        { word: 'pane', ok: true, type: null, when: null, where: null },
+        { word: 'casa', ok: false, type: 'blocco', when: 'durante', where: 'labbra' },
+      ],
+    };
+    localStorage.setItem('novedecimi.sessions', JSON.stringify([vecchia]));
+    expect(elencaSessioni()[0]!.words).toEqual([
+      { word: 'pane', ok: true, type: [], when: null, where: [] },
+      { word: 'casa', ok: false, type: ['blocco'], when: 'durante', where: ['labbra'] },
+    ]);
   });
 
   it('segnala quando non riesce a salvare, senza interrompere la pagina', () => {
@@ -66,9 +81,18 @@ describe('backup', () => {
     expect(elencaSessioni().map((s) => s.ts)).toEqual([1000, 2000]);
   });
 
+  it('importa un backup della versione 1, con un valore solo per tipo e zona', () => {
+    const v1 = {
+      ...sessione(1000),
+      words: [{ word: 'casa', ok: false, type: 'ripetizione', when: 'prima', where: null }],
+    };
+    expect(importaBackup(JSON.stringify({ app: 'novedecimi', versione: 1, sessioni: [v1] }))).toEqual({ aggiunte: 1, ignorate: 0 });
+    expect(elencaSessioni()[0]!.words).toEqual([{ word: 'casa', ok: false, type: ['ripetizione'], when: 'prima', where: [] }]);
+  });
+
   it('scarta le sessioni con dati non ammessi e tiene le altre', () => {
     const tipoInventato = { ...sessione(2000) };
-    tipoInventato.words = [{ word: 'casa', ok: false, type: 'svenimento', when: 'durante', where: null } as never];
+    tipoInventato.words = [{ word: 'casa', ok: false, type: ['svenimento'], when: 'durante', where: [] } as never];
     const parolaNonTesto = { ...sessione(3000), words: [{ word: { html: '<b>' }, ok: true } as never] };
     const senzaTs = { ...sessione(4000), ts: 'ieri' as never };
     const backup = JSON.stringify({

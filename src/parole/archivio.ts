@@ -1,7 +1,7 @@
 // Archivio delle sessioni sul dispositivo della persona (localStorage).
 // Sostituisce il db del runtime degli artefatti Claude.
 
-import { CONSAPEVOLEZZE, TIPI_DISFLUENZA, ZONE_DI_TENSIONE } from './types';
+import { CONSAPEVOLEZZE, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
 import type { ParolaLetta, Sessione } from './types';
 
 const CHIAVE = 'novedecimi.sessions';
@@ -11,7 +11,9 @@ function leggi(): Sessione[] {
     const grezzo = localStorage.getItem(CHIAVE);
     if (!grezzo) return [];
     const dati: unknown = JSON.parse(grezzo);
-    return Array.isArray(dati) ? (dati as Sessione[]) : [];
+    if (!Array.isArray(dati)) return [];
+    // I dati salvati prima delle scelte multiple si convertono alla lettura.
+    return dati.map(sessioneValida).filter((s): s is Sessione => s !== null);
   } catch {
     return [];
   }
@@ -36,7 +38,7 @@ export function aggiungiSessione(s: Sessione): boolean {
   return scrivi([...leggi(), s]);
 }
 
-const VERSIONE_BACKUP = 1;
+const VERSIONE_BACKUP = 2;
 
 interface Backup {
   app: 'novedecimi';
@@ -65,24 +67,36 @@ function valoreAmmesso<T extends string>(v: unknown, ammessi: readonly T[]): T |
   return ammessi.includes(v as T) ? (v as T) : undefined;
 }
 
-function parolaValida(v: unknown): ParolaLetta | null {
+/**
+ * Una lista di valori ammessi. Accetta anche la forma della versione 1, con un
+ * valore solo o null; undefined se c'è un valore non ammesso.
+ */
+function listaAmmessa<T extends string>(v: unknown, ammessi: readonly T[]): T[] | undefined {
+  if (v === null || v === undefined) return [];
+  const valori = Array.isArray(v) ? v : [v];
+  if (!valori.every((x) => ammessi.includes(x as T))) return undefined;
+  return inOrdine(valori as T[], ammessi);
+}
+
+/** Ricostruisce una parola da dati salvati o esterni; null se qualcosa non è ammesso. */
+export function normalizzaParola(v: unknown): ParolaLetta | null {
   if (typeof v !== 'object' || v === null) return null;
   const p = v as Record<string, unknown>;
   if (typeof p.word !== 'string' || typeof p.ok !== 'boolean') return null;
-  const type = valoreAmmesso(p.type, TIPI_DISFLUENZA);
+  const type = listaAmmessa(p.type, TIPI_DISFLUENZA);
   const when = valoreAmmesso(p.when, CONSAPEVOLEZZE);
-  const where = valoreAmmesso(p.where, ZONE_DI_TENSIONE);
+  const where = listaAmmessa(p.where, ZONE_DI_TENSIONE);
   if (type === undefined || when === undefined || where === undefined) return null;
   return { word: p.word, ok: p.ok, type, when, where };
 }
 
-/** Ricostruisce una sessione da dati esterni; null se qualcosa non è ammesso. */
-function sessioneValida(v: unknown): Sessione | null {
+/** Ricostruisce una sessione da dati salvati o esterni; null se qualcosa non è ammesso. */
+export function sessioneValida(v: unknown): Sessione | null {
   if (typeof v !== 'object' || v === null) return null;
   const s = v as Record<string, unknown>;
   if (![s.ts, s.total, s.ok, s.diff, s.pct].every(numero)) return null;
   if (typeof s.date !== 'string' || typeof s.focusMode !== 'boolean' || !Array.isArray(s.words)) return null;
-  const words = s.words.map(parolaValida);
+  const words = s.words.map(normalizzaParola);
   if (words.some((w) => w === null)) return null;
   return {
     ts: s.ts as number,

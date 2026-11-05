@@ -3,7 +3,7 @@
 
 import { dataEstesa } from './sessione';
 import { contaAnnotazioni } from './storico';
-import type { ParolaLetta } from './types';
+import { TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine, type ParolaLetta } from './types';
 
 export const NOMI_ZONA = {
   labbra: 'Labbra',
@@ -50,6 +50,8 @@ export function buildRTF(parole: ParolaLetta[], adesso: Date): string {
   par();
 
   if (diffN > 0) {
+    par(R('Un episodio può avere più tipi e più zone: la somma può superare le parole con balbuzie.'));
+    par();
     par(bold('Tipo di disfluenza'));
     par('Ripetizione: ' + tipo.ripetizione);
     par('Blocco: ' + tipo.blocco);
@@ -68,7 +70,11 @@ export function buildRTF(parole: ParolaLetta[], adesso: Date): string {
     }
     par(bold('Parole con balbuzie'));
     conBalbuzie.forEach((r, i) => {
-      const annotazioni = [r.type, r.when, r.where].filter((v): v is NonNullable<typeof v> => v !== null).map(maiuscola);
+      const annotazioni = [
+        ...inOrdine(r.type, TIPI_DISFLUENZA),
+        ...(r.when ? [r.when] : []),
+        ...inOrdine(r.where, ZONE_DI_TENSIONE).map((z) => NOMI_ZONA[z]),
+      ].map(maiuscola);
       par(`${i + 1}. {\\b ${R(r.word)}}: ${R(annotazioni.join(', '))}`);
     });
   } else {

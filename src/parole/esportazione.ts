@@ -3,7 +3,7 @@
 // parole con balbuzie. Il BOM iniziale serve a Excel per leggere l'UTF-8.
 
 import { aggrega, perGiorno } from './storico';
-import type { Sessione } from './types';
+import { TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine, type Sessione } from './types';
 
 /**
  * Le celle che iniziano con = + - @ vanno tra virgolette: senza, Excel le
@@ -32,6 +32,7 @@ export function buildCSV(sessioni: Sessione[]): string {
   riga(['TOTALE PERIODO', tot.sessioni, tot.total, tot.ok, tot.diff, tot.pct + '%']);
 
   sezione('Tipo di disfluenza');
+  riga(['Un episodio può avere più tipi: la somma può superare le parole con balbuzie.']);
   riga(['Data', 'Ripetizione', 'Blocco', 'Prolungamento']);
   for (const { chiave, tipo: t } of giorni) riga([chiave, t.ripetizione, t.blocco, t.prolungamento]);
   riga(['TOTALE', tot.tipo.ripetizione, tot.tipo.blocco, tot.tipo.prolungamento]);
@@ -42,6 +43,7 @@ export function buildCSV(sessioni: Sessione[]): string {
   riga(['TOTALE', tot.consapevolezza.prima, tot.consapevolezza.durante, tot.consapevolezza.dopo]);
 
   sezione('Zona di tensione');
+  riga(['Un episodio può avere più zone: la somma può superare le parole con balbuzie.']);
   riga(['Data', 'Labbra', 'Lingua', 'Palato', 'Gola', 'Petto']);
   for (const { chiave, zona: z } of giorni) riga([chiave, z.labbra, z.lingua, z.palato, z.gola, z.petto]);
   const z = tot.zona;
@@ -51,7 +53,15 @@ export function buildCSV(sessioni: Sessione[]): string {
   if (parole.length > 0) {
     sezione('Parole con balbuzie');
     riga(['Data', 'Parola', 'Tipo', 'Consapevolezza', 'Zona di tensione']);
-    for (const w of parole) riga([w.giorno, w.word, w.type ?? '', w.when ?? '', w.where ?? '']);
+    for (const w of parole) {
+      riga([
+        w.giorno,
+        w.word,
+        inOrdine(w.type, TIPI_DISFLUENZA).join('; '),
+        w.when ?? '',
+        inOrdine(w.where, ZONE_DI_TENSIONE).join('; '),
+      ]);
+    }
   }
 
   return '﻿' + righe.join('\r\n');

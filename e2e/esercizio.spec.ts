@@ -27,7 +27,14 @@ test('una sessione completa arriva al riepilogo, allo storico e all\'esportazion
   await pannello.getByRole('button', { name: 'Blocco' }).click();
   await expect(conferma).toBeDisabled();
   await pannello.getByRole('button', { name: 'Durante' }).click();
+  // Tipo e zona sono a scelta multipla; un secondo tocco toglie la scelta.
+  await pannello.getByRole('button', { name: 'Ripetizione' }).click();
   await pannello.getByRole('button', { name: 'Labbra' }).click();
+  await pannello.getByRole('button', { name: 'Gola' }).click();
+  await pannello.getByRole('button', { name: 'Petto' }).click();
+  await pannello.getByRole('button', { name: 'Petto' }).click();
+  await expect(pannello.getByRole('button', { name: 'Petto' })).toHaveAttribute('aria-pressed', 'false');
+  await expect(pannello.getByRole('button', { name: 'Gola' })).toHaveAttribute('aria-pressed', 'true');
   await expect(conferma).toBeEnabled();
   await conferma.click();
   await expect(progresso).toHaveText('Parola 4 di 5');
@@ -49,7 +56,7 @@ test('una sessione completa arriva al riepilogo, allo storico e all\'esportazion
   await expect(page.locator('#storico-subtitle')).toHaveText('1 giorno, 1 sessione');
   await expect(page.locator('.day-card')).toHaveCount(1);
   await expect(page.locator('.day-pct')).toHaveText('80%');
-  await expect(page.locator('.word-pill .pill-ann')).toHaveText('blocco, durante, labbra');
+  await expect(page.locator('.word-pill .pill-ann')).toHaveText('ripetizione, blocco, durante, labbra, gola');
 
   const csv = page.waitForEvent('download');
   await page.getByRole('button', { name: "Scarica l'esportazione (.csv)" }).click();

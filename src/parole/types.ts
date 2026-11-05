@@ -10,13 +10,22 @@ export type TipoDisfluenza = (typeof TIPI_DISFLUENZA)[number];
 export type Consapevolezza = (typeof CONSAPEVOLEZZE)[number];
 export type ZonaDiTensione = (typeof ZONE_DI_TENSIONE)[number];
 
-/** Una parola letta in una sessione: fluente (ok) o con balbuzie (ok false). */
+/**
+ * Una parola letta in una sessione: fluente (ok) o con balbuzie (ok false).
+ * Tipo e zona sono liste (ADR 0003); per una parola fluente sono vuote.
+ */
 export interface ParolaLetta {
   word: string;
   ok: boolean;
-  type: TipoDisfluenza | null;
+  type: TipoDisfluenza[];
   when: Consapevolezza | null;
-  where: ZonaDiTensione | null;
+  where: ZonaDiTensione[];
+}
+
+/** I valori scelti, senza doppioni e nell'ordine canonico di `ammessi`. */
+export function inOrdine<T extends string>(valori: Iterable<T>, ammessi: readonly T[]): T[] {
+  const scelti = new Set(valori);
+  return ammessi.filter((v) => scelti.has(v));
 }
 
 export interface Sessione {
