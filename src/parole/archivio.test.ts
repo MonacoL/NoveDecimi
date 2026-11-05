@@ -11,9 +11,10 @@ function sessione(ts: number, parola = 'casa'): Sessione {
     diff: 1,
     pct: 50,
     focusMode: false,
+    modalita: 'parola',
     words: [
-      { word: 'pane', ok: true, type: [], when: null, where: [] },
-      { word: parola, ok: false, type: ['blocco'], when: 'durante', where: ['labbra', 'gola'] },
+      { word: 'pane', ok: true, type: [], when: null, where: [], inFrase: [] },
+      { word: parola, ok: false, type: ['blocco'], when: 'durante', where: ['labbra', 'gola'], inFrase: [] },
     ],
   };
 }
@@ -44,12 +45,29 @@ describe('archivio delle sessioni', () => {
         { word: 'pane', ok: true, type: null, when: null, where: null },
         { word: 'casa', ok: false, type: 'blocco', when: 'durante', where: 'labbra' },
       ],
-    };
+    } as Record<string, unknown>;
+    delete vecchia.modalita;
     localStorage.setItem('novedecimi.sessions', JSON.stringify([vecchia]));
     expect(elencaSessioni()[0]!.words).toEqual([
-      { word: 'pane', ok: true, type: [], when: null, where: [] },
-      { word: 'casa', ok: false, type: ['blocco'], when: 'durante', where: ['labbra'] },
+      { word: 'pane', ok: true, type: [], when: null, where: [], inFrase: [] },
+      { word: 'casa', ok: false, type: ['blocco'], when: 'durante', where: ['labbra'], inFrase: [] },
     ]);
+  });
+
+  it('tratta le sessioni salvate prima delle modalità come modalità parola', () => {
+    const { modalita: _, ...senzaModalita } = sessione(1000);
+    localStorage.setItem('novedecimi.sessions', JSON.stringify([senzaModalita]));
+    expect(elencaSessioni()[0]!.modalita).toBe('parola');
+  });
+
+  it('conserva dove nella frase per le sessioni in modalità frase', () => {
+    const frase: Sessione = {
+      ...sessione(1000),
+      modalita: 'frase',
+      words: [{ word: 'casa', ok: false, type: ['blocco'], when: 'prima', where: [], inFrase: ['altra', 'estratta'] }],
+    };
+    aggiungiSessione(frase);
+    expect(elencaSessioni()[0]!.words[0]!.inFrase).toEqual(['estratta', 'altra']);
   });
 
   it('segnala quando non riesce a salvare, senza interrompere la pagina', () => {
@@ -85,14 +103,15 @@ describe('backup', () => {
     const v1 = {
       ...sessione(1000),
       words: [{ word: 'casa', ok: false, type: 'ripetizione', when: 'prima', where: null }],
-    };
+    } as Record<string, unknown>;
+    delete v1.modalita;
     expect(importaBackup(JSON.stringify({ app: 'novedecimi', versione: 1, sessioni: [v1] }))).toEqual({ aggiunte: 1, ignorate: 0 });
-    expect(elencaSessioni()[0]!.words).toEqual([{ word: 'casa', ok: false, type: ['ripetizione'], when: 'prima', where: [] }]);
+    expect(elencaSessioni()[0]!.words).toEqual([{ word: 'casa', ok: false, type: ['ripetizione'], when: 'prima', where: [], inFrase: [] }]);
   });
 
   it('scarta le sessioni con dati non ammessi e tiene le altre', () => {
     const tipoInventato = { ...sessione(2000) };
-    tipoInventato.words = [{ word: 'casa', ok: false, type: ['svenimento'], when: 'durante', where: [] } as never];
+    tipoInventato.words = [{ word: 'casa', ok: false, type: ['svenimento'], when: 'durante', where: [], inFrase: [] } as never];
     const parolaNonTesto = { ...sessione(3000), words: [{ word: { html: '<b>' }, ok: true } as never] };
     const senzaTs = { ...sessione(4000), ts: 'ieri' as never };
     const backup = JSON.stringify({

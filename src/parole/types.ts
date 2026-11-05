@@ -5,10 +5,14 @@
 export const TIPI_DISFLUENZA = ['ripetizione', 'blocco', 'prolungamento'] as const;
 export const CONSAPEVOLEZZE = ['prima', 'durante', 'dopo'] as const;
 export const ZONE_DI_TENSIONE = ['labbra', 'lingua', 'palato', 'gola', 'petto'] as const;
+export const MODALITA = ['parola', 'frase'] as const;
+export const DOVE_NELLA_FRASE = ['estratta', 'altra'] as const;
 
 export type TipoDisfluenza = (typeof TIPI_DISFLUENZA)[number];
 export type Consapevolezza = (typeof CONSAPEVOLEZZE)[number];
 export type ZonaDiTensione = (typeof ZONE_DI_TENSIONE)[number];
+export type Modalita = (typeof MODALITA)[number];
+export type DoveNellaFrase = (typeof DOVE_NELLA_FRASE)[number];
 
 /**
  * Una parola letta in una sessione: fluente (ok) o con balbuzie (ok false).
@@ -20,6 +24,8 @@ export interface ParolaLetta {
   type: TipoDisfluenza[];
   when: Consapevolezza | null;
   where: ZonaDiTensione[];
+  /** In modalità frase, su quale parola è caduto l'episodio; vuota altrimenti. */
+  inFrase: DoveNellaFrase[];
 }
 
 /** I valori scelti, senza doppioni e nell'ordine canonico di `ammessi`. */
@@ -38,5 +44,7 @@ export interface Sessione {
   pct: number;
   /** true se la sessione usava la lista dei suoni difficili. */
   focusMode: boolean;
+  /** Parola singola o parola in una frase (ADR 0004). */
+  modalita: Modalita;
   words: ParolaLetta[];
 }

@@ -11,10 +11,11 @@ describe('riepilogo RTF', () => {
   it('elenca le parole con balbuzie con le loro annotazioni', () => {
     const rtf = buildRTF(
       [
-        { word: 'pane', ok: true, type: [], when: null, where: [] },
-        { word: 'casa', ok: false, type: ['blocco', 'ripetizione'], when: 'durante', where: ['labbra', 'gola'] },
-        { word: 'porta', ok: false, type: ['ripetizione'], when: 'prima', where: [] },
+        { word: 'pane', ok: true, type: [], when: null, where: [], inFrase: [] },
+        { word: 'casa', ok: false, type: ['blocco', 'ripetizione'], when: 'durante', where: ['labbra', 'gola'], inFrase: [] },
+        { word: 'porta', ok: false, type: ['ripetizione'], when: 'prima', where: [], inFrase: [] },
       ],
+      'parola',
       giovedi,
     );
 
@@ -30,8 +31,24 @@ describe('riepilogo RTF', () => {
   });
 
   it('dice che non ci sono episodi quando tutte le parole sono fluenti', () => {
-    const rtf = buildRTF([{ word: 'pane', ok: true, type: [], when: null, where: [] }], giovedi);
+    const rtf = buildRTF([{ word: 'pane', ok: true, type: [], when: null, where: [], inFrase: [] }], 'parola', giovedi);
     expect(rtf).toContain('Nessun episodio di balbuzie annotato.\\par');
     expect(rtf).not.toContain('Tipo di disfluenza');
+  });
+
+  it('in modalità frase conta le frasi e dice dove è caduto l\'episodio', () => {
+    const rtf = buildRTF(
+      [
+        { word: 'pane', ok: true, type: [], when: null, where: [], inFrase: [] },
+        { word: 'casa', ok: false, type: ['blocco'], when: 'prima', where: [], inFrase: ['altra'] },
+      ],
+      'frase',
+      giovedi,
+    );
+    expect(rtf).toContain("{\\b Esercizio parole}, modalit\\'e0 frase, gioved\\'ec 5 novembre 2026\\par");
+    expect(rtf).toContain('Frasi dette: 2\\par');
+    expect(rtf).toContain('Altra parola: 1\\par');
+    expect(rtf).toContain('1. {\\b casa}: Blocco, Prima, Altra parola\\par');
+    expect(rtf).not.toContain('Parole lette');
   });
 });

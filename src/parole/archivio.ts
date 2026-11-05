@@ -1,7 +1,7 @@
 // Archivio delle sessioni sul dispositivo della persona (localStorage).
 // Sostituisce il db del runtime degli artefatti Claude.
 
-import { CONSAPEVOLEZZE, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
+import { CONSAPEVOLEZZE, DOVE_NELLA_FRASE, MODALITA, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
 import type { ParolaLetta, Sessione } from './types';
 
 const CHIAVE = 'novedecimi.sessions';
@@ -86,8 +86,9 @@ export function normalizzaParola(v: unknown): ParolaLetta | null {
   const type = listaAmmessa(p.type, TIPI_DISFLUENZA);
   const when = valoreAmmesso(p.when, CONSAPEVOLEZZE);
   const where = listaAmmessa(p.where, ZONE_DI_TENSIONE);
-  if (type === undefined || when === undefined || where === undefined) return null;
-  return { word: p.word, ok: p.ok, type, when, where };
+  const inFrase = listaAmmessa(p.inFrase, DOVE_NELLA_FRASE);
+  if (type === undefined || when === undefined || where === undefined || inFrase === undefined) return null;
+  return { word: p.word, ok: p.ok, type, when, where, inFrase };
 }
 
 /** Ricostruisce una sessione da dati salvati o esterni; null se qualcosa non è ammesso. */
@@ -96,6 +97,9 @@ export function sessioneValida(v: unknown): Sessione | null {
   const s = v as Record<string, unknown>;
   if (![s.ts, s.total, s.ok, s.diff, s.pct].every(numero)) return null;
   if (typeof s.date !== 'string' || typeof s.focusMode !== 'boolean' || !Array.isArray(s.words)) return null;
+  // Le sessioni salvate prima delle modalità sono in modalità parola.
+  const modalita = valoreAmmesso(s.modalita, MODALITA);
+  if (modalita === undefined) return null;
   const words = s.words.map(normalizzaParola);
   if (words.some((w) => w === null)) return null;
   return {
@@ -106,6 +110,7 @@ export function sessioneValida(v: unknown): Sessione | null {
     diff: s.diff as number,
     pct: s.pct as number,
     focusMode: s.focusMode,
+    modalita: modalita ?? 'parola',
     words: words as ParolaLetta[],
   };
 }

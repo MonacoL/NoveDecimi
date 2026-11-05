@@ -6,12 +6,12 @@ import './parole.css';
 import { mostraAvviso } from '../shared/avviso';
 import { scarica, timbroData } from '../shared/download';
 import { BackupNonValido, aggiungiSessione, elencaSessioni, esportaBackup, importaBackup } from './archivio';
-import { buildCSV } from './esportazione';
-import { NOMI_ZONA, buildRTF } from './riepilogo';
+import { NOMI_DOVE, buildCSV } from './esportazione';
+import { NOMI_DOVE_FRASE, NOMI_ZONA, buildRTF } from './riepilogo';
 import { creaSessione, dataEstesa, type Risultato } from './sessione';
-import { chiaveGiorno, contaAnnotazioni, perGiorno } from './storico';
-import { TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
-import type { Consapevolezza, ParolaLetta, TipoDisfluenza, ZonaDiTensione } from './types';
+import { contaAnnotazioni, perGiorno } from './storico';
+import { DOVE_NELLA_FRASE, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
+import type { Consapevolezza, DoveNellaFrase, Modalita, ParolaLetta, TipoDisfluenza, ZonaDiTensione } from './types';
 import { interpretaComando } from './voce';
 import { WORDS_ALL, WORDS_FOCUS, getSoundLabel, shuffle } from './words';
 
@@ -21,12 +21,14 @@ type Schermata = 'start' | 'exercise' | 'summary' | 'storico';
 
 let count = 15;
 let focusMode = false;
+let modalita: Modalita = 'parola';
 let words: string[] = [];
 let idx = 0;
 let results: Risultato[] = [];
 const selTypes = new Set<TipoDisfluenza>();
 let selWhen: Consapevolezza | null = null;
 const selWheres = new Set<ZonaDiTensione>();
+const selInFrase = new Set<DoveNellaFrase>();
 let inAvanzamento = false;
 let currentSessionSaved = false;
 let schermataPrecedente: Schermata = 'start';
@@ -70,6 +72,22 @@ $('focus-toggle').onclick = () => {
   $('focus-toggle').setAttribute('aria-checked', String(focusMode));
 };
 
+const ISTRUZIONI: Record<Modalita, string> = {
+  parola: "Leggi la parola ad alta voce. Se c'è stato un episodio di balbuzie, annotalo.",
+  frase: "Di' una frase che contiene la parola. Se c'è stato un episodio di balbuzie, anche su un'altra parola, annotalo.",
+};
+
+document.querySelectorAll<HTMLElement>('.modalita-btn').forEach((b) => {
+  b.onclick = () => {
+    modalita = b.dataset.modalita as Modalita;
+    document.querySelectorAll('.modalita-btn').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    $('istruzione').textContent = ISTRUZIONI[modalita];
+  };
+});
+
+/** Parole o frasi, al singolare o al plurale, secondo la modalità. */
+const unita = (m: Modalita, n: number) => (m === 'frase' ? (n === 1 ? 'frase' : 'frasi') : n === 1 ? 'parola' : 'parole');
+
 // Esercizio
 
 $('start-btn').onclick = () => {
@@ -80,6 +98,10 @@ $('start-btn').onclick = () => {
   currentSessionSaved = false;
   inAvanzamento = false;
   $('summary-status').textContent = '';
+  // In modalità frase i comandi vocali sono spenti (ADR 0004).
+  $('mic-area').hidden = !rec || modalita === 'frase';
+  $('mini-ok').parentElement!.title = modalita === 'frase' ? 'Frasi fluenti' : 'Parole fluenti';
+  $('mini-diff').parentElement!.title = modalita === 'frase' ? 'Frasi con balbuzie' : 'Parole con balbuzie';
   show('exercise');
   render();
 };
@@ -144,6 +166,9 @@ function openDiffPanel(): void {
   selTypes.clear();
   selWhen = null;
   selWheres.clear();
+  selInFrase.clear();
+  $('infrase-gruppo').hidden = modalita !== 'frase';
+  document.querySelector('.diff-sheet')!.classList.toggle('con-frase', modalita === 'frase');
   document.querySelectorAll('.chip').forEach((c) => {
     c.classList.remove('sel');
     c.setAttribute('aria-pressed', 'false');
@@ -176,6 +201,7 @@ $('confirm-btn').onclick = () => {
     type: inOrdine(selTypes, TIPI_DISFLUENZA),
     when: selWhen,
     where: inOrdine(selWheres, ZONE_DI_TENSIONE),
+    inFrase: modalita === 'frase' ? inOrdine(selInFrase, DOVE_NELLA_FRASE) : [],
   });
   flashWord('flash-diff');
   closePanel();
@@ -228,7 +254,8 @@ function aggiungiZone(zone: ZonaDiTensione[]): void {
 }
 
 function updateConfirm(): void {
-  $<HTMLButtonElement>('confirm-btn').disabled = !(selTypes.size > 0 && selWhen);
+  const doveScelto = modalita !== 'frase' || selInFrase.size > 0;
+  $<HTMLButtonElement>('confirm-btn').disabled = !(selTypes.size > 0 && selWhen && doveScelto);
 }
 
 /** Con la voce, tipo e consapevolezza bastano: la conferma parte da sola dopo un secondo. */
@@ -250,6 +277,13 @@ document.querySelectorAll<HTMLElement>('#type-chips .chip').forEach((c) => {
 document.querySelectorAll<HTMLElement>('#when-chips .chip').forEach((c) => {
   c.onclick = () => selectWhen(c.dataset.when as Consapevolezza);
 });
+document.querySelectorAll<HTMLElement>('#infrase-chips .chip').forEach((c) => {
+  c.onclick = () => {
+    alterna(selInFrase, c.dataset.infrase as DoveNellaFrase);
+    aggiornaChip('infrase-chips', 'infrase', selInFrase);
+    updateConfirm();
+  };
+});
 document.querySelectorAll<HTMLElement>('#where-chips .chip').forEach((c) => {
   c.onclick = () => {
     alterna(selWheres, c.dataset.where as ZonaDiTensione);
@@ -261,7 +295,7 @@ document.querySelectorAll<HTMLElement>('#where-chips .chip').forEach((c) => {
 
 function saveSession(): void {
   if (currentSessionSaved || results.length === 0) return;
-  if (aggiungiSessione(creaSessione(results, focusMode, new Date()))) {
+  if (aggiungiSessione(creaSessione(results, focusMode, modalita, new Date()))) {
     currentSessionSaved = true;
   } else {
     mostraAvviso($('summary-status'), 'Non è stato possibile salvare la sessione su questo dispositivo.', 0);
@@ -299,6 +333,8 @@ function summary(): void {
   $('s-ok').textContent = String(okN);
   $('s-diff').textContent = String(diffN);
   $('ring-pct').textContent = pct + '%';
+  $('ring-lbl').textContent = modalita === 'frase' ? 'frasi fluenti' : 'parole fluenti';
+  document.querySelectorAll('#summary-screen .scard-sub').forEach((e) => (e.textContent = unita(modalita, 2)));
 
   const C = 2 * Math.PI * 54;
   const fill = $('ring-fill');
@@ -310,8 +346,8 @@ function summary(): void {
     }),
   );
 
-  const parole = results.map((r) => ({ type: [], when: null, where: [], ...r }) as ParolaLetta);
-  const { tipo, consapevolezza, zona } = contaAnnotazioni(parole);
+  const parole = results.map((r) => ({ type: [], when: null, where: [], inFrase: [], ...r }) as ParolaLetta);
+  const { tipo, consapevolezza, zona, inFrase } = contaAnnotazioni(parole);
 
   const wb = $('when-breakdown');
   wb.replaceChildren();
@@ -339,13 +375,21 @@ function summary(): void {
   const zone = (Object.keys(zona) as ZonaDiTensione[]).filter((k) => zona[k] > 0);
   $('where-title').hidden = zone.length === 0;
   for (const k of zone) zRows.append(rigaConteggio(NOMI_ZONA[k], zona[k], 'var(--where)'));
+
+  const fRows = $('infrase-rows');
+  fRows.replaceChildren();
+  $('infrase-title').hidden = modalita !== 'frase' || diffN === 0;
+  if (modalita === 'frase' && diffN > 0) {
+    for (const k of DOVE_NELLA_FRASE) fRows.append(rigaConteggio(NOMI_DOVE_FRASE[k], inFrase[k], 'var(--accent)'));
+  }
 }
 
 $('restart-btn').onclick = () => show('start');
 
 $('download-btn').onclick = () => {
-  const parole = results.map((r) => ({ type: [], when: null, where: [], ...r }) as ParolaLetta);
-  scarica(`parole-${timbroData()}.rtf`, buildRTF(parole, new Date()), 'application/rtf');
+  const parole = results.map((r) => ({ type: [], when: null, where: [], inFrase: [], ...r }) as ParolaLetta);
+  const nome = modalita === 'frase' ? 'frasi' : 'parole';
+  scarica(`${nome}-${timbroData()}.rtf`, buildRTF(parole, modalita, new Date()), 'application/rtf');
 };
 
 // Riconoscimento vocale (Chrome, Edge, Safari; non Firefox)
@@ -460,7 +504,7 @@ function clearTranscript(): void {
 function handleVoice(testo: string): void {
   const now = Date.now();
   if (now - lastCmdTime < 700) return;
-  if (schermataAttiva() !== 'exercise') return;
+  if (schermataAttiva() !== 'exercise' || modalita === 'frase') return;
 
   const aperto = panelOpen();
   const cmd = interpretaComando(testo, aperto);
@@ -546,12 +590,14 @@ function renderStorico(): void {
     const info = el('div', 'day-info');
     info.append(
       el('div', 'day-date', dataEstesa(new Date(g.ts))),
-      el('div', 'day-sub', `${g.total} parol${g.total === 1 ? 'a' : 'e'}, ${g.ok} fluent${g.ok === 1 ? 'e' : 'i'}, ${g.diff} con balbuzie`),
+      el('div', 'day-sub', `${g.total} ${unita(g.modalita, g.total)}, ${g.ok} fluent${g.ok === 1 ? 'e' : 'i'}, ${g.diff} con balbuzie`),
     );
     head.append(el('div', 'day-pct', g.pct + '%'), info);
 
-    const usaSuoni = sessioni.some((s) => s.focusMode && chiaveGiorno(s.ts) === g.chiave);
-    const nota = (g.sessioni > 1 ? `${g.sessioni} sessioni` : '1 sessione') + (usaSuoni ? ', suoni difficili' : '');
+    const nota =
+      (g.modalita === 'frase' ? 'Parola in una frase, ' : 'Parola singola, ') +
+      (g.sessioni > 1 ? `${g.sessioni} sessioni` : '1 sessione') +
+      (g.suoniDifficili ? ', suoni difficili' : '');
 
     const detail = el('div', 'day-detail');
     if (g.diff > 0) {
@@ -559,16 +605,22 @@ function renderStorico(): void {
         gruppoChip('Tipo di disfluenza', g.tipo),
         gruppoChip('Consapevolezza', g.consapevolezza),
         gruppoChip('Zona di tensione', g.zona),
+        g.modalita === 'frase' ? gruppoChip('Dove nella frase', { [NOMI_DOVE.estratta]: g.inFrase.estratta, [NOMI_DOVE.altra]: g.inFrase.altra }) : null,
       ]) {
         if (gruppo) detail.append(gruppo);
       }
       const gp = el('div', 'day-group');
-      gp.append(el('div', 'day-group-title', 'Parole con balbuzie'));
+      gp.append(el('div', 'day-group-title', g.modalita === 'frase' ? 'Frasi con balbuzie (parola estratta)' : 'Parole con balbuzie'));
       const pills = el('div');
       for (const w of g.conBalbuzie) {
         const pill = el('span', 'word-pill');
         pill.append(el('strong', undefined, w.word));
-        const ann = [...inOrdine(w.type, TIPI_DISFLUENZA), ...(w.when ? [w.when] : []), ...inOrdine(w.where, ZONE_DI_TENSIONE)].join(', ');
+        const ann = [
+          ...inOrdine(w.type, TIPI_DISFLUENZA),
+          ...(w.when ? [w.when] : []),
+          ...inOrdine(w.where, ZONE_DI_TENSIONE),
+          ...inOrdine(w.inFrase, DOVE_NELLA_FRASE).map((d) => NOMI_DOVE[d]),
+        ].join(', ');
         if (ann) pill.append(el('span', 'pill-ann', ann));
         pills.append(pill);
       }

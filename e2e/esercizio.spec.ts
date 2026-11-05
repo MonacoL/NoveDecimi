@@ -61,8 +61,8 @@ test('una sessione completa arriva al riepilogo, allo storico e all\'esportazion
   const csv = page.waitForEvent('download');
   await page.getByRole('button', { name: "Scarica l'esportazione (.csv)" }).click();
   const contenuto = await readFile((await (await csv).path())!, 'utf8');
-  expect(contenuto).toContain('Data,Sessioni,Parole totali,Fluenti,Con balbuzie,Parole fluenti %');
-  expect(contenuto).toMatch(/\d{4}-\d{2}-\d{2},1,5,4,1,80%/);
+  expect(contenuto).toContain('Data,Modalità,Sessioni,Parole o frasi,Fluenti,Con balbuzie,Fluenti %');
+  expect(contenuto).toMatch(/\d{4}-\d{2}-\d{2},parola,1,5,4,1,80%/);
   expect(contenuto).toContain('PAROLE CON BALBUZIE');
 
   await page.getByRole('button', { name: 'Torna al riepilogo' }).click();
@@ -103,4 +103,54 @@ test('ogni schermata sta nella larghezza e i comandi principali restano nello sc
   await page.getByRole('button', { name: 'Storico' }).click();
   await expect(page.locator('.day-card')).toHaveCount(1);
   await senzaScorrimentoOrizzontale(page);
+});
+
+test('in modalità frase si annota dove è caduto l\'episodio e lo storico tiene separate parole e frasi', async ({ page }) => {
+  const errori = raccogliErrori(page);
+  await page.goto('parole/');
+  await page.getByRole('radio', { name: 'Parola in una frase' }).click();
+  await expect(page.getByRole('radio', { name: 'Parola in una frase' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.locator('#istruzione')).toContainText('frase');
+  for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Meno parole' }).click();
+  await page.getByRole('button', { name: 'Inizia' }).click();
+  await expect(page.locator('#mic-area')).toBeHidden();
+
+  await page.getByRole('button', { name: 'Balbuzie' }).click();
+  const pannello = page.getByRole('dialog', { name: "Annota l'episodio di balbuzie" });
+  const conferma = pannello.getByRole('button', { name: 'Conferma' });
+  await pannello.getByRole('button', { name: 'Blocco' }).click();
+  await pannello.getByRole('button', { name: 'Prima' }).click();
+  // Senza dove nella frase la conferma resta spenta.
+  await expect(conferma).toBeDisabled();
+  await pannello.getByRole('button', { name: 'Altra parola' }).click();
+  await conferma.click();
+  await expect(page.locator('#prog-label')).toHaveText('Parola 2 di 5');
+
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: 'Avanti' }).click();
+    await page.waitForTimeout(350);
+  }
+  await expect(page.locator('#ring-lbl')).toHaveText('frasi fluenti');
+  await expect(page.locator('#ring-pct')).toHaveText('80%');
+  await expect(page.locator('#infrase-rows')).toContainText('Altra parola');
+
+  const rtf = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Scarica il riepilogo (.rtf)' }).click();
+  expect((await rtf).suggestedFilename()).toMatch(/^frasi-\d{4}-\d{2}-\d{2}\.rtf$/);
+
+  // Una sessione in modalità parola lo stesso giorno: due schede, non sommate.
+  await page.getByRole('button', { name: 'Nuova sessione' }).click();
+  await page.getByRole('radio', { name: 'Parola singola' }).click();
+  await page.getByRole('button', { name: 'Inizia' }).click();
+  for (let i = 0; i < 5; i++) {
+    await page.getByRole('button', { name: 'Avanti' }).click();
+    await page.waitForTimeout(350);
+  }
+  await page.getByRole('button', { name: 'Storico' }).click();
+  await expect(page.locator('.day-card')).toHaveCount(2);
+  await expect(page.locator('.day-card').filter({ hasText: 'Parola in una frase' }).locator('.day-pct')).toHaveText('80%');
+  await expect(page.locator('.day-card').filter({ hasText: 'Parola singola' }).locator('.day-pct')).toHaveText('100%');
+  await expect(page.locator('.word-pill .pill-ann')).toHaveText('blocco, prima, altra parola');
+
+  expect(errori).toEqual([]);
 });

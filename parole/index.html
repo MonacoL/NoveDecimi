@@ -19,10 +19,22 @@
       <section id="start-screen" class="screen active" aria-labelledby="titolo-parole">
         <div class="app-title">
           <h1 id="titolo-parole">Lettura di parole</h1>
-          <p>Leggi la parola ad alta voce. Se c'è stato un episodio di balbuzie, annotalo.</p>
+          <p id="istruzione">Leggi la parola ad alta voce. Se c'è stato un episodio di balbuzie, annotalo.</p>
         </div>
 
         <div class="start-controls">
+          <div class="modalita-control">
+            <span class="eyebrow" id="lbl-modalita">Modalità</span>
+            <div class="modalita-scelte" role="radiogroup" aria-labelledby="lbl-modalita">
+              <button class="modalita-btn" type="button" role="radio" aria-checked="true" data-modalita="parola">
+                Parola singola
+              </button>
+              <button class="modalita-btn" type="button" role="radio" aria-checked="false" data-modalita="frase">
+                Parola in una frase
+              </button>
+            </div>
+          </div>
+
           <div class="count-control">
             <span class="eyebrow" id="count-label">Numero di parole</span>
             <div class="count-row" role="group" aria-labelledby="count-label">
@@ -135,6 +147,8 @@
         <div class="bk-rows" id="type-rows"></div>
         <div class="bk-title" id="where-title" hidden>Zona di tensione</div>
         <div class="bk-rows" id="where-rows"></div>
+        <div class="bk-title" id="infrase-title" hidden>Dove nella frase</div>
+        <div class="bk-rows" id="infrase-rows"></div>
         <div class="azioni">
           <button class="btn-primary" id="restart-btn" type="button">Nuova sessione</button>
           <button class="btn-secondary" id="download-btn" type="button">Scarica il riepilogo (.rtf)</button>
@@ -174,6 +188,14 @@
       <div class="diff-sheet">
         <div class="handle" aria-hidden="true"></div>
         <div class="diff-echo" id="diff-echo"></div>
+
+        <div class="gruppo" id="infrase-gruppo" hidden>
+          <div class="section-label" id="lbl-infrase">Dove nella frase <small>(anche tutte e due)</small></div>
+          <div class="chips" id="infrase-chips" role="group" aria-labelledby="lbl-infrase">
+            <button class="chip" type="button" aria-pressed="false" data-infrase="estratta">Parola estratta</button>
+            <button class="chip" type="button" aria-pressed="false" data-infrase="altra">Altra parola</button>
+          </div>
+        </div>
 
         <div class="gruppo">
           <div class="section-label" id="lbl-type">Tipo di disfluenza <small>(anche più di uno)</small></div>
