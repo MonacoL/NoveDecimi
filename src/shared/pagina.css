@@ -1,0 +1,56 @@
+/* Elementi comuni alle pagine dei moduli e dei dati: contenitore,
+   pulsanti, messaggi, intestazione. */
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.eyebrow {
+  font-size: .72rem; font-weight: 700; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--fg-muted);
+}
+
+.btn-primary {
+  background: var(--accent); color: #fff; border: none; border-radius: 16px;
+  padding: 17px 40px; font-size: 1.02rem; font-weight: 600; cursor: pointer;
+  width: 100%; max-width: 400px; font-family: inherit; transition: transform .1s, filter .15s;
+}
+.btn-primary:active { transform: scale(.98); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-secondary {
+  background: transparent; color: var(--fg-muted);
+  border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 13px 24px; font-size: .9rem; font-weight: 500; cursor: pointer;
+  width: 100%; max-width: 400px; font-family: inherit;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn-secondary:hover { background: var(--accent-lt); border-color: var(--accent); color: var(--accent); }
+.btn-primary, .btn-secondary { display: block; text-align: center; text-decoration: none; }
+
+.nota { font-size: .86rem; color: var(--fg-muted); margin-top: 6px; }
+.stato { font-size: .84rem; color: var(--fg-muted); text-align: center; min-height: 1.3em; width: 100%; max-width: 400px; line-height: 1.5; }
+.azioni { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 400px; }
+
+.pagina { align-items: center; padding-block: 16px 32px; gap: 18px; display: flex; flex-direction: column; }
+.pagina-header { text-align: center; width: 100%; max-width: 400px; }
+.pagina-header h1 { font-family: var(--font-serif); font-weight: 500; font-size: 1.9rem; letter-spacing: -0.02em; }
+.pagina-header p { color: var(--fg-muted); font-size: .88rem; margin-top: 5px; }
+.riquadro {
+  width: 100%; max-width: 400px; border-top: 1px solid var(--border); padding-top: 16px;
+  display: flex; flex-direction: column; gap: 10px; align-items: center; scroll-margin-top: 16px;
+}
+.riquadro h2 { font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--fg-muted); }
+.riquadro p { font-size: .86rem; color: var(--fg-muted); text-align: center; line-height: 1.55; }

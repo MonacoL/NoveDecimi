@@ -26,7 +26,7 @@ test('i blocchi di testo della home hanno la stessa larghezza del resto del cont
   for (const selettore of ['.parti', '.ponte', '.piede p']) {
     expect(Math.abs((await larghezza(selettore)) - riferimento), selettore).toBeLessThanOrEqual(1);
   }
-  const marca = (await page.locator('.brand').boundingBox())!.x;
+  const marca = (await page.locator('.topbar .brand').boundingBox())!.x;
   const contenuto = (await page.locator('.schede').boundingBox())!.x;
   expect(Math.abs(marca - contenuto), 'il nome in alto non è allineato al contenuto').toBeLessThanOrEqual(1);
 });

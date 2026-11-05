@@ -54,7 +54,7 @@
         </div>
 
         <button class="btn-primary" id="start-btn" type="button">Inizia</button>
-        <button class="btn-secondary" id="btn-storico-home" type="button">Storico</button>
+        <a class="btn-secondary" id="btn-storico-home" href="../storico/">Storico</a>
       </section>
 
       <!-- Esercizio -->
@@ -152,33 +152,8 @@
         <div class="azioni">
           <button class="btn-primary" id="restart-btn" type="button">Nuova sessione</button>
           <button class="btn-secondary" id="download-btn" type="button">Scarica il riepilogo (.rtf)</button>
-          <button class="btn-secondary" id="btn-storico" type="button">Storico</button>
+          <a class="btn-secondary" href="../storico/">Storico</a>
           <p class="stato" id="summary-status" aria-live="polite"></p>
-        </div>
-      </section>
-
-      <!-- Storico -->
-      <section id="storico-screen" class="screen" aria-labelledby="titolo-storico">
-        <div class="storico-header">
-          <h2 id="titolo-storico">Storico</h2>
-          <p id="storico-subtitle"></p>
-        </div>
-        <div id="storico-list"></div>
-        <div class="azioni">
-          <button class="btn-primary" id="btn-csv" type="button" hidden>Scarica l'esportazione (.csv)</button>
-        </div>
-        <div class="backup-box">
-          <p>
-            Lo storico resta solo su questo dispositivo. Con il backup puoi conservarne una copia o spostarlo su un
-            altro dispositivo.
-          </p>
-          <button class="btn-secondary" id="btn-backup" type="button" hidden>Scarica il backup (.json)</button>
-          <button class="btn-secondary" id="btn-import" type="button">Importa un backup</button>
-          <input type="file" id="import-file" accept="application/json,.json" hidden />
-          <p class="stato" id="storico-status" aria-live="polite"></p>
-        </div>
-        <div class="azioni">
-          <button class="btn-secondary" id="back-from-storico" type="button">Torna indietro</button>
         </div>
       </section>
     </main>

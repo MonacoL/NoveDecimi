@@ -8,6 +8,8 @@ export default defineConfig({
       input: {
         home: resolve(import.meta.dirname, 'index.html'),
         parole: resolve(import.meta.dirname, 'parole/index.html'),
+        storico: resolve(import.meta.dirname, 'storico/index.html'),
+        account: resolve(import.meta.dirname, 'account/index.html'),
       },
     },
   },

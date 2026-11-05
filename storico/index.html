@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Lo storico delle sessioni, raggruppate per giorno." />
+    <meta name="theme-color" content="#f3f2ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121416" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Storico, Novedecimi</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../">Nove<span>decimi</span></a>
+    </header>
+
+    <main class="app pagina" aria-labelledby="titolo-storico">
+      <div class="pagina-header">
+        <h1 id="titolo-storico">Storico</h1>
+        <p id="storico-subtitle"></p>
+      </div>
+      <div id="storico-list"></div>
+      <div class="azioni">
+        <a class="btn-primary" href="../parole/">Nuova sessione</a>
+        <button class="btn-secondary" id="btn-csv" type="button" hidden>Scarica l'esportazione (.csv)</button>
+        <p class="stato" id="storico-status" aria-live="polite"></p>
+      </div>
+    </main>
+
+    <script type="module" src="/src/storico/main.ts"></script>
+  </body>
+</html>

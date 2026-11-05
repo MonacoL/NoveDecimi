@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Account, Google Drive e backup dello storico." />
+    <meta name="theme-color" content="#f3f2ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121416" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Account e dati, Novedecimi</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="../">Nove<span>decimi</span></a>
+    </header>
+
+    <main class="app pagina" aria-labelledby="titolo-account">
+      <div class="pagina-header">
+        <h1 id="titolo-account">Account e dati</h1>
+        <p>Dove stanno i tuoi dati e come portarli con te.</p>
+      </div>
+
+      <section class="riquadro" id="dati-locali" aria-labelledby="titolo-locali">
+        <h2 id="titolo-locali">Su questo dispositivo</h2>
+        <p id="locali-stato"></p>
+      </section>
+
+      <section class="riquadro" id="backup" aria-labelledby="titolo-backup">
+        <h2 id="titolo-backup">Backup</h2>
+        <p>
+          Il backup è la copia completa dello storico in un file. Serve a conservarlo o a spostarlo su un altro
+          dispositivo.
+        </p>
+        <button class="btn-secondary" id="btn-backup" type="button" hidden>Scarica il backup (.json)</button>
+        <button class="btn-secondary" id="btn-import" type="button">Importa un backup</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden />
+        <p class="stato" id="backup-status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script type="module" src="/src/account/main.ts"></script>
+  </body>
+</html>

@@ -74,6 +74,12 @@ export function aggregaPerModalita(sessioni: Sessione[]): Partial<Record<Modalit
   return risultato;
 }
 
+/** "parola", "parole", "frase" o "frasi", secondo modalità e numero. */
+export function unita(m: Modalita, n: number): string {
+  if (m === 'frase') return n === 1 ? 'frase' : 'frasi';
+  return n === 1 ? 'parola' : 'parole';
+}
+
 export function chiaveGiorno(ts: number): string {
   const d = new Date(ts);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

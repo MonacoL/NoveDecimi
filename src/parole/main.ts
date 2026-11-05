@@ -5,19 +5,21 @@ import '../shared/style.css';
 import './parole.css';
 import { mostraAvviso } from '../shared/avviso';
 import { scarica, timbroData } from '../shared/download';
-import { BackupNonValido, aggiungiSessione, elencaSessioni, esportaBackup, importaBackup } from './archivio';
-import { NOMI_DOVE, buildCSV } from './esportazione';
+import { $, el } from '../shared/dom';
+import { montaMenu } from '../shared/menu';
+import '../shared/pagina.css';
+import { aggiungiSessione } from './archivio';
 import { NOMI_DOVE_FRASE, NOMI_ZONA, buildRTF } from './riepilogo';
-import { creaSessione, dataEstesa, type Risultato } from './sessione';
-import { contaAnnotazioni, perGiorno } from './storico';
+import { creaSessione, type Risultato } from './sessione';
+import { contaAnnotazioni, unita } from './storico';
 import { DOVE_NELLA_FRASE, TIPI_DISFLUENZA, ZONE_DI_TENSIONE, inOrdine } from './types';
 import type { Consapevolezza, DoveNellaFrase, Modalita, ParolaLetta, TipoDisfluenza, ZonaDiTensione } from './types';
 import { interpretaComando } from './voce';
 import { WORDS_ALL, WORDS_FOCUS, getSoundLabel, shuffle } from './words';
 
-const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+montaMenu('parole');
 
-type Schermata = 'start' | 'exercise' | 'summary' | 'storico';
+type Schermata = 'start' | 'exercise' | 'summary';
 
 let count = 15;
 let focusMode = false;
@@ -31,7 +33,6 @@ const selWheres = new Set<ZonaDiTensione>();
 const selInFrase = new Set<DoveNellaFrase>();
 let inAvanzamento = false;
 let currentSessionSaved = false;
-let schermataPrecedente: Schermata = 'start';
 
 function show(name: Schermata): void {
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
@@ -42,14 +43,6 @@ function show(name: Schermata): void {
 function schermataAttiva(): Schermata {
   const el = document.querySelector('.screen.active');
   return (el?.id.replace('-screen', '') ?? 'start') as Schermata;
-}
-
-/** Crea un elemento con testo semplice: i dati non passano mai da innerHTML. */
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  if (className) e.className = className;
-  if (text !== undefined) e.textContent = text;
-  return e;
 }
 
 // Numero di parole e suoni difficili
@@ -85,8 +78,6 @@ document.querySelectorAll<HTMLElement>('.modalita-btn').forEach((b) => {
   };
 });
 
-/** Parole o frasi, al singolare o al plurale, secondo la modalità. */
-const unita = (m: Modalita, n: number) => (m === 'frase' ? (n === 1 ? 'frase' : 'frasi') : n === 1 ? 'parola' : 'parole');
 
 // Esercizio
 
@@ -548,135 +539,3 @@ function handleVoice(testo: string): void {
       break;
   }
 }
-
-// Storico
-
-function chip(nome: string, n: number): HTMLElement {
-  const c = el('span', 'day-chip', nome + ' ');
-  c.append(el('b', undefined, String(n)));
-  return c;
-}
-
-function gruppoChip(titolo: string, conteggi: Record<string, number>): HTMLElement | null {
-  const voci = Object.entries(conteggi).filter(([, n]) => n > 0);
-  if (voci.length === 0) return null;
-  const g = el('div', 'day-group');
-  const chips = el('div', 'day-chips');
-  for (const [k, n] of voci) chips.append(chip(k, n));
-  g.append(el('div', 'day-group-title', titolo), chips);
-  return g;
-}
-
-function renderStorico(): void {
-  const sessioni = elencaSessioni();
-  const list = $('storico-list');
-  list.replaceChildren();
-  const vuoto = sessioni.length === 0;
-  $('btn-csv').hidden = vuoto;
-  $('btn-backup').hidden = vuoto;
-  if (vuoto) {
-    $('storico-subtitle').textContent = 'Nessuna sessione registrata su questo dispositivo.';
-    return;
-  }
-
-  const giorni = perGiorno(sessioni).reverse();
-  const nSess = sessioni.length;
-  $('storico-subtitle').textContent =
-    `${giorni.length} giorn${giorni.length === 1 ? 'o' : 'i'}, ${nSess} session${nSess === 1 ? 'e' : 'i'}`;
-
-  for (const g of giorni) {
-    const card = el('article', 'day-card');
-    const head = el('div', 'day-head');
-    const info = el('div', 'day-info');
-    info.append(
-      el('div', 'day-date', dataEstesa(new Date(g.ts))),
-      el('div', 'day-sub', `${g.total} ${unita(g.modalita, g.total)}, ${g.ok} fluent${g.ok === 1 ? 'e' : 'i'}, ${g.diff} con balbuzie`),
-    );
-    head.append(el('div', 'day-pct', g.pct + '%'), info);
-
-    const nota =
-      (g.modalita === 'frase' ? 'Parola in una frase, ' : 'Parola singola, ') +
-      (g.sessioni > 1 ? `${g.sessioni} sessioni` : '1 sessione') +
-      (g.suoniDifficili ? ', suoni difficili' : '');
-
-    const detail = el('div', 'day-detail');
-    if (g.diff > 0) {
-      for (const gruppo of [
-        gruppoChip('Tipo di disfluenza', g.tipo),
-        gruppoChip('Consapevolezza', g.consapevolezza),
-        gruppoChip('Zona di tensione', g.zona),
-        g.modalita === 'frase' ? gruppoChip('Dove nella frase', { [NOMI_DOVE.estratta]: g.inFrase.estratta, [NOMI_DOVE.altra]: g.inFrase.altra }) : null,
-      ]) {
-        if (gruppo) detail.append(gruppo);
-      }
-      const gp = el('div', 'day-group');
-      gp.append(el('div', 'day-group-title', g.modalita === 'frase' ? 'Frasi con balbuzie (parola estratta)' : 'Parole con balbuzie'));
-      const pills = el('div');
-      for (const w of g.conBalbuzie) {
-        const pill = el('span', 'word-pill');
-        pill.append(el('strong', undefined, w.word));
-        const ann = [
-          ...inOrdine(w.type, TIPI_DISFLUENZA),
-          ...(w.when ? [w.when] : []),
-          ...inOrdine(w.where, ZONE_DI_TENSIONE),
-          ...inOrdine(w.inFrase, DOVE_NELLA_FRASE).map((d) => NOMI_DOVE[d]),
-        ].join(', ');
-        if (ann) pill.append(el('span', 'pill-ann', ann));
-        pills.append(pill);
-      }
-      gp.append(pills);
-      detail.append(gp);
-    } else {
-      detail.append(el('p', 'nota', 'Nessun episodio di balbuzie annotato.'));
-    }
-
-    card.append(head, el('div', 'day-note', nota), detail);
-    list.append(card);
-  }
-}
-
-function apriStorico(): void {
-  const da = schermataAttiva();
-  if (da !== 'storico') schermataPrecedente = da;
-  $('back-from-storico').textContent = schermataPrecedente === 'summary' ? 'Torna al riepilogo' : "Torna all'inizio";
-  $('storico-status').textContent = '';
-  renderStorico();
-  show('storico');
-}
-
-$('btn-storico').onclick = apriStorico;
-$('btn-storico-home').onclick = apriStorico;
-$('back-from-storico').onclick = () => show(schermataPrecedente);
-
-$('btn-csv').onclick = () => {
-  const csv = buildCSV(elencaSessioni());
-  if (!csv) {
-    mostraAvviso($('storico-status'), 'Non ci sono sessioni da esportare.');
-    return;
-  }
-  scarica(`storico-parole-${timbroData()}.csv`, csv, 'text/csv;charset=utf-8');
-};
-
-$('btn-backup').onclick = () => {
-  scarica(`novedecimi-backup-${timbroData()}.json`, esportaBackup(), 'application/json');
-};
-
-$('btn-import').onclick = () => $('import-file').click();
-
-$<HTMLInputElement>('import-file').onchange = async (e) => {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = '';
-  if (!file) return;
-  const stato = $('storico-status');
-  try {
-    const { aggiunte, ignorate } = importaBackup(await file.text());
-    const parti = [aggiunte === 1 ? '1 sessione aggiunta' : `${aggiunte} sessioni aggiunte`];
-    if (ignorate > 0) parti.push(ignorate === 1 ? '1 già presente o non valida' : `${ignorate} già presenti o non valide`);
-    renderStorico();
-    mostraAvviso(stato, `Backup importato: ${parti.join(', ')}.`, 0);
-  } catch (err) {
-    const msg = err instanceof BackupNonValido ? err.message : 'Non è stato possibile leggere il file.';
-    mostraAvviso(stato, msg, 0);
-  }
-};

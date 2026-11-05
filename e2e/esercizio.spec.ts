@@ -52,7 +52,7 @@ test('una sessione completa arriva al riepilogo, allo storico e all\'esportazion
   await page.getByRole('button', { name: 'Scarica il riepilogo (.rtf)' }).click();
   expect((await rtf).suggestedFilename()).toMatch(/^parole-\d{4}-\d{2}-\d{2}\.rtf$/);
 
-  await page.getByRole('button', { name: 'Storico' }).click();
+  await page.getByRole('link', { name: 'Storico', exact: true }).click();
   await expect(page.locator('#storico-subtitle')).toHaveText('1 giorno, 1 sessione');
   await expect(page.locator('.day-card')).toHaveCount(1);
   await expect(page.locator('.day-pct')).toHaveText('80%');
@@ -64,9 +64,6 @@ test('una sessione completa arriva al riepilogo, allo storico e all\'esportazion
   expect(contenuto).toContain('Data,Modalità,Sessioni,Parole o frasi,Fluenti,Con balbuzie,Fluenti %');
   expect(contenuto).toMatch(/\d{4}-\d{2}-\d{2},parola,1,5,4,1,80%/);
   expect(contenuto).toContain('PAROLE CON BALBUZIE');
-
-  await page.getByRole('button', { name: 'Torna al riepilogo' }).click();
-  await expect(page.getByRole('heading', { name: 'Sessione completata' })).toBeVisible();
 
   expect(errori).toEqual([]);
 });
@@ -100,7 +97,7 @@ test('ogni schermata sta nella larghezza e i comandi principali restano nello sc
   await expect(page.getByRole('heading', { name: 'Sessione completata' })).toBeVisible();
   await senzaScorrimentoOrizzontale(page);
 
-  await page.getByRole('button', { name: 'Storico' }).click();
+  await page.getByRole('link', { name: 'Storico', exact: true }).click();
   await expect(page.locator('.day-card')).toHaveCount(1);
   await senzaScorrimentoOrizzontale(page);
 });
@@ -146,7 +143,7 @@ test('in modalità frase si annota dove è caduto l\'episodio e lo storico tiene
     await page.getByRole('button', { name: 'Avanti' }).click();
     await page.waitForTimeout(350);
   }
-  await page.getByRole('button', { name: 'Storico' }).click();
+  await page.getByRole('link', { name: 'Storico', exact: true }).click();
   await expect(page.locator('.day-card')).toHaveCount(2);
   await expect(page.locator('.day-card').filter({ hasText: 'Parola in una frase' }).locator('.day-pct')).toHaveText('80%');
   await expect(page.locator('.day-card').filter({ hasText: 'Parola singola' }).locator('.day-pct')).toHaveText('100%');

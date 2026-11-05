@@ -1,0 +1,22 @@
+/* Pagina dello storico: una scheda per giorno e modalità. */
+
+#storico-list { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
+.day-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.day-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px 6px; }
+.day-pct { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 3.5ch; text-align: right; color: var(--fg); }
+.day-info { flex: 1; min-width: 0; }
+.day-date { font-size: .9rem; font-weight: 600; }
+.day-sub { font-size: .78rem; color: var(--fg-muted); margin-top: 2px; }
+.day-note { font-size: .78rem; color: var(--fg-muted); padding: 0 16px 10px; border-bottom: 1px solid var(--border); }
+.day-detail { padding: 4px 16px 14px; }
+.day-group { padding: 10px 0 4px; }
+.day-group-title { font-size: .66rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 4px; }
+.day-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.day-chip { font-size: .8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 99px; padding: 2px 9px; color: var(--fg-muted); }
+.day-chip b { color: var(--fg); font-weight: 600; }
+.word-pill {
+  display: inline-flex; align-items: center; gap: 5px; background: var(--balbuzie-lt); border: 1px solid var(--border);
+  border-radius: 99px; padding: 3px 10px; margin: 3px 3px 3px 0; font-size: .82rem;
+}
+.word-pill .pill-ann { color: var(--fg-muted); font-size: .77rem; }
+

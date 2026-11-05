@@ -1,0 +1,67 @@
+/* Menù laterale comune a tutte le pagine. */
+
+.menu-apri {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 12px 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.menu-apri:hover { border-color: var(--accent); color: var(--accent); }
+.menu-apri svg, .menu-chiudi svg {
+  width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+}
+
+.menu {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(320px, 86vw);
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px))
+    max(20px, env(safe-area-inset-bottom, 0px)) 20px;
+  overflow-y: auto;
+}
+.menu[open] { animation: menu-entra 0.2s ease; }
+.menu::backdrop { background: rgba(0, 0, 0, 0.42); }
+@keyframes menu-entra { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+.menu-testa { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; min-height: 40px; }
+.menu-chiudi {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%; background: transparent; color: var(--fg-muted); cursor: pointer;
+}
+.menu-chiudi:hover { background: var(--accent-lt); color: var(--accent); }
+
+.menu-gruppo {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--fg-muted); margin: 18px 0 6px;
+}
+.menu ul { list-style: none; }
+.menu nav a {
+  display: block; padding: 11px 12px; margin-inline: -12px; border-radius: 10px;
+  color: var(--fg); text-decoration: none; font-size: 0.98rem;
+}
+.menu nav a:hover { background: var(--accent-lt); color: var(--accent); }
+.menu nav a[aria-current='page'] { background: var(--accent-lt); color: var(--accent); font-weight: 600; }
+
+/* Telefono in orizzontale: voci più fitte, così il menù sta nello schermo. */
+@media (max-height: 520px) {
+  .menu-testa { margin-bottom: 4px; }
+  .menu-gruppo { margin: 8px 0 2px; }
+  .menu nav a { padding-block: 7px; }
+}
