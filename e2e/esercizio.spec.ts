@@ -79,6 +79,10 @@ test('ogni schermata sta nella larghezza e i comandi principali restano nello sc
   await senzaScorrimentoOrizzontale(page);
   await interoNelloSchermo(page, page.getByRole('button', { name: 'Avanti' }));
   await interoNelloSchermo(page, page.getByRole('button', { name: 'Balbuzie' }));
+  // Avanti sta a destra, Balbuzie a sinistra.
+  const xAvanti = (await page.getByRole('button', { name: 'Avanti' }).boundingBox())!.x;
+  const xBalbuzie = (await page.getByRole('button', { name: 'Balbuzie' }).boundingBox())!.x;
+  expect(xAvanti).toBeGreaterThan(xBalbuzie);
   await interoNelloSchermo(page, page.locator('#word-text'));
 
   await page.getByRole('button', { name: 'Balbuzie' }).click();
