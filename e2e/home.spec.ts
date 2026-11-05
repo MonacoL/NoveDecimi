@@ -18,3 +18,15 @@ test('la home mostra lo schema dell\'iceberg e porta all\'esercizio', async ({ p
 
   expect(errori).toEqual([]);
 });
+
+test('i blocchi di testo della home hanno la stessa larghezza del resto del contenuto', async ({ page }) => {
+  await page.goto('./');
+  const larghezza = async (selettore: string) => (await page.locator(selettore).boundingBox())!.width;
+  const riferimento = await larghezza('.schede');
+  for (const selettore of ['.parti', '.ponte', '.piede p']) {
+    expect(Math.abs((await larghezza(selettore)) - riferimento), selettore).toBeLessThanOrEqual(1);
+  }
+  const marca = (await page.locator('.brand').boundingBox())!.x;
+  const contenuto = (await page.locator('.schede').boundingBox())!.x;
+  expect(Math.abs(marca - contenuto), 'il nome in alto non è allineato al contenuto').toBeLessThanOrEqual(1);
+});

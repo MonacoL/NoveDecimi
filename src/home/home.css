@@ -168,8 +168,12 @@ h3 {
 }
 
 .ponte {
-  margin-top: 20px;
-  max-width: 40em;
+  margin-top: 16px;
+  padding: 18px 20px;
+  background: var(--accent-lt);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 16px 16px 0;
+  color: var(--fg);
 }
 
 /* Menù degli esercizi */
@@ -248,15 +252,15 @@ h3 {
 }
 
 .piede {
-  padding-block: 24px max(32px, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--border);
+  padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
 }
 
 .piede p {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
   font-size: 0.86rem;
   color: var(--fg-muted);
   line-height: 1.6;
-  max-width: 44em;
 }
 
 @media (min-width: 760px) {
